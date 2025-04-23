@@ -14,8 +14,8 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('id_produk')->constrained('produk')->onDelete('cascade')->onUpdate('cascade');
             $table->foreignId('id_penitip')->constrained('penitip')->onDelete('cascade')->onUpdate('cascade');
-            $table->enum('status', ['masuk', 'keluar'])->default('masuk');
-            $table->integer('jumlah');
+            $table->integer('stok_masuk')->default(0);
+            $table->integer('stok_akhir')->default(0);
 
             $table->timestamps();
         });

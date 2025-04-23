@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Inertia\Inertia;
 use App\Models\Penitip;
 use Illuminate\Http\Request;
 
@@ -12,54 +13,52 @@ class PenitipController extends Controller
      */
     public function index()
     {
-        //
+        $penitips = Penitip::latest()->get();
+        return Inertia::render('penitip/index', [
+            'penitips' => $penitips,
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
+
 
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-        //
+        $data = $request->validate([
+            'nama_penitip' => 'required',
+        ]);
+        Penitip::create($data);
+        return redirect()->back()->with('success', 'Data penitip berhasil ditambahkan');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Penitip $penitip)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Penitip $penitip)
-    {
-        //
-    }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Penitip $penitip)
+    public function update(Request $request, Penitip $penitip, $id)
     {
-        //
+        $penitip = Penitip::findOrFail($id);
+        $request->validate([
+            'nama_penitip' => 'required',
+        ]);
+
+        $penitip->update($request->only('nama_penitip'));
+        return redirect()->back()->with('success', 'Data penitip berhasil diubah');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Penitip $penitip)
+    public function destroy($id)
     {
-        //
+        $penitip = Penitip::find($id);
+        // Check if penitip has related data in other tables
+        if ($penitip->relatedData()->exists()) {
+            return redirect()->back()->with('error', 'Data penitip tidak dapat dihapus karena memiliki data terkait');
+        }
+        $penitip->delete();
+        return redirect()->back()->with('success', 'Data penitip berhasil dihapus');
     }
 }

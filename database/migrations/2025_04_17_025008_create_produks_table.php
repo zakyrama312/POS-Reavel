@@ -16,6 +16,8 @@ return new class extends Migration {
             $table->string('nama_produk');
             $table->foreignId('id_penitip')->constrained('penitip')->onDelete('cascade')->onUpdate('cascade');
             $table->foreignId('id_kategori')->constrained('kategori')->onDelete('cascade')->onUpdate('cascade');
+            $table->integer('stok_masukSementara')->default(0);
+            $table->integer('stok_akhirSementara')->default(0);
             $table->decimal('hpp', 10, 2)->nullable();
             $table->decimal('harga', 10, 2);
             $table->decimal('diskon', 10, 2)->nullable();

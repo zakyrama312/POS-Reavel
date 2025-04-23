@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Inertia\Inertia;
 use App\Models\Kategori;
 use Illuminate\Http\Request;
 
@@ -12,15 +13,8 @@ class KategoriController extends Controller
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        $kategoris = Kategori::latest()->get();
+        return Inertia::render('kategori/index', ['kategoris' => $kategoris]);
     }
 
     /**
@@ -28,38 +22,39 @@ class KategoriController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $data = $request->validate([
+            'nama_kategori' => 'required',
+        ]);
+        Kategori::create($data);
+        return redirect()->back()->with('success', 'Data kategori berhasil ditambahkan');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Kategori $kategori)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Kategori $kategori)
-    {
-        //
-    }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Kategori $kategori)
+    public function update(Request $request, Kategori $kategori, $id)
     {
-        //
+        $kategori = Kategori::findOrFail($id);
+        $request->validate([
+            'nama_kategori' => 'required',
+        ]);
+
+        $kategori->update($request->only('nama_kategori'));
+        return redirect()->back()->with('success', 'Data kategori berhasil diubah');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Kategori $kategori)
+    public function destroy($id)
     {
-        //
+        $kategori = Kategori::find($id);
+        // Check if kategori has related data in other tables
+        if ($kategori->relatedData()->exists()) {
+            return redirect()->back()->with('error', 'Data kategori tidak dapat dihapus karena memiliki data terkait');
+        }
+        $kategori->delete();
+        return redirect()->back()->with('success', 'Data kategori berhasil dihapus');
     }
 }
