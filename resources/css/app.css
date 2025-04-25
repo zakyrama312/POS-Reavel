@@ -4,7 +4,7 @@
 
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-
+@plugin "daisyui";
 @custom-variant dark (&:is(.dark *));
 
 @theme {

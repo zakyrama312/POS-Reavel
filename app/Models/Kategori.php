@@ -12,8 +12,8 @@ class Kategori extends Model
 
     // Define any relationships here if needed
     // For example:
-    // public function products()
-    // {
-    //     return $this->hasMany(Product::class);
-    // }
+    public function produk()
+    {
+        return $this->hasMany(Produk::class);
+    }
 }

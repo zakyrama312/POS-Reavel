@@ -1,9 +1,13 @@
 <?php
 
-use App\Http\Controllers\KategoriController;
-use App\Http\Controllers\PenitipController;
-use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Models\Produk_stok;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ProdukController;
+use App\Http\Controllers\PenitipController;
+use App\Http\Controllers\KategoriController;
+use App\Http\Controllers\TransaksiController;
+use App\Http\Controllers\ProdukStokController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -25,14 +29,28 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/kategori/{id}', [KategoriController::class, 'destroy'])->name('kategori.destroy');
     Route::get('/kategori/{id}/edit', [KategoriController::class, 'edit']);
     Route::put('/kategori/{id}', [KategoriController::class, 'update']);
+    // Produk CRUD
+    Route::get('produk', [ProdukController::class, 'index'])->name('produk.index');
+    Route::get('produk-list', [ProdukController::class, 'produkList'])->name('produk.produkList');
+    Route::get('produk-stok', [ProdukController::class, 'produkStok'])->name('produk.produkStok');
+    Route::post('/produk', [ProdukController::class, 'store'])->name('produk.store');
+    Route::delete('/produk/{id}', [ProdukController::class, 'destroy'])->name('produk.destroy');
+    Route::get('/produk/{id}/edit', [ProdukController::class, 'edit']);
+    Route::put('/produk/{id}', [ProdukController::class, 'update']);
+    // Produk Stok
+    Route::post('/produk/reset', [ProdukController::class, 'resetStok']);
+    Route::put('/produk/update-stok/{id}', [ProdukController::class, 'updateStok'])->name('produk.updateStok');
+
+
+    // Transaksi
+    // routes/web.php
+    Route::post('/transaksi', [TransaksiController::class, 'store'])->name('transaksi.store');
 
 
 
-
-
-    Route::get('produk-list', function () {
-        return Inertia::render('cart/produk-list');
-    })->name('produk-list');
+    // Route::get('produk-list', function () {
+    //     return Inertia::render('cart/produk-list');
+    // })->name('produk-list');
 
 
 

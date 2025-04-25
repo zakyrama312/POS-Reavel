@@ -22,8 +22,8 @@ const manajemenData: NavItem[] = [
         icon: Users,
     },
     {
-        title: 'Barang',
-        href: '/barang',
+        title: 'Produk',
+        href: '/produk',
         icon: Package,
     },
     {
