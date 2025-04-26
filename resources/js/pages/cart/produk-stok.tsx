@@ -1,6 +1,5 @@
 import PointofSales from '@/components/pointofSales';
-import { Head, Link, router } from '@inertiajs/react';
-import { SquareArrowLeft } from 'lucide-react';
+import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 import DataTable from 'react-data-table-component';
 
@@ -96,9 +95,9 @@ export default function StokPage({ produk }: Props) {
             <PointofSales />
 
             <div className="p-4">
-                <Link href="/produk-list">
+                {/* <Link href="/produk-list">
                     <SquareArrowLeft className="text-red" />
-                </Link>
+                </Link> */}
                 <div className="rounded-xl bg-white p-4 shadow">
                     <div className="mb-4 flex items-center justify-between">
                         <input

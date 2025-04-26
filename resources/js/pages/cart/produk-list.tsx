@@ -64,15 +64,11 @@ export default function POSPage({ produk: initialProduk }: Props) {
             })),
         };
 
-        console.log('Data yang dikirim:', data);
-
         router.post('/transaksi', data, {
-            onStart: () => console.log('Mulai submit...'),
             onSuccess: () => {
                 setCart([]);
                 setBayar(0);
             },
-            onFinish: () => console.log('Selesai submit'),
         });
     };
 
@@ -155,7 +151,7 @@ export default function POSPage({ produk: initialProduk }: Props) {
                                 <span>Kelola Produk</span>
                             </Link>
                             <Link
-                                href="/laporan-penjualan"
+                                href="/transaksi-harian"
                                 className="flex items-center gap-2 rounded-[8px] border bg-[#f75959ce] px-4 py-2 text-white hover:bg-red-500"
                             >
                                 <span>Laporan Penjualan</span>

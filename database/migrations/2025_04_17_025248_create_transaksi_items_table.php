@@ -14,9 +14,13 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('id_transaksi')->constrained('transaksi')->onDelete('cascade')->onUpdate('cascade');
             $table->foreignId('id_produk')->constrained('produk')->onDelete('cascade')->onUpdate('cascade');
-            $table->integer('jumlah');
-            $table->decimal('harga', 10, 2);
-            $table->decimal('diskon', 10, 2)->nullable();
+            $table->foreignId('id_penitip')->constrained('penitip')->onDelete('cascade')->onUpdate('cascade');
+            $table->integer('jumlah_beli');
+            $table->integer('harga');
+            $table->integer('laba');
+            $table->integer('total_harga');
+            $table->integer('total_uang_penitip');
+            $table->integer('diskon')->nullable();
             $table->timestamps();
         });
     }

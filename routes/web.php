@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\PenitipController;
 use App\Http\Controllers\KategoriController;
+use App\Http\Controllers\PenggunaController;
 use App\Http\Controllers\TransaksiController;
 use App\Http\Controllers\ProdukStokController;
 
@@ -17,26 +18,38 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
+    // Pengguna CRUD
+    Route::get('pengguna', [PenggunaController::class, 'index'])->name('pengguna.index');
+    Route::post('/pengguna', [PenggunaController::class, 'store'])->name('pengguna.store');
+    Route::delete('/pengguna/{id}', [PenggunaController::class, 'destroy'])->name('pengguna.destroy');
+    Route::get('/pengguna/{id}/edit', [PenggunaController::class, 'edit']);
+    Route::put('/pengguna/{id}', [PenggunaController::class, 'update']);
+
     // Penitip CRUD
     Route::get('penitip', [PenitipController::class, 'index'])->name('penitip.index');
     Route::post('/penitip', [PenitipController::class, 'store'])->name('penitip.store');
     Route::delete('/penitip/{id}', [PenitipController::class, 'destroy'])->name('penitip.destroy');
     Route::get('/penitip/{id}/edit', [PenitipController::class, 'edit']);
     Route::put('/penitip/{id}', [PenitipController::class, 'update']);
+
     // Kategori CRUD
     Route::get('kategori', [KategoriController::class, 'index'])->name('kategori.index');
     Route::post('/kategori', [KategoriController::class, 'store'])->name('kategori.store');
     Route::delete('/kategori/{id}', [KategoriController::class, 'destroy'])->name('kategori.destroy');
     Route::get('/kategori/{id}/edit', [KategoriController::class, 'edit']);
     Route::put('/kategori/{id}', [KategoriController::class, 'update']);
+
     // Produk CRUD
     Route::get('produk', [ProdukController::class, 'index'])->name('produk.index');
-    Route::get('produk-list', [ProdukController::class, 'produkList'])->name('produk.produkList');
     Route::get('produk-stok', [ProdukController::class, 'produkStok'])->name('produk.produkStok');
     Route::post('/produk', [ProdukController::class, 'store'])->name('produk.store');
     Route::delete('/produk/{id}', [ProdukController::class, 'destroy'])->name('produk.destroy');
     Route::get('/produk/{id}/edit', [ProdukController::class, 'edit']);
     Route::put('/produk/{id}', [ProdukController::class, 'update']);
+
+    // POS
+    Route::get('/point-of-sales', [ProdukController::class, 'produkList'])->name('produk.produkList');
+
     // Produk Stok
     Route::post('/produk/reset', [ProdukController::class, 'resetStok']);
     Route::put('/produk/update-stok/{id}', [ProdukController::class, 'updateStok'])->name('produk.updateStok');
@@ -45,6 +58,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Transaksi
     // routes/web.php
     Route::post('/transaksi', [TransaksiController::class, 'store'])->name('transaksi.store');
+    Route::get('/transaksi-harian', [TransaksiController::class, 'transaksiHarian'])->name('transaksi.transaksiHarian');
+    Route::get('/transaksi-harian-rpl', [TransaksiController::class, 'transaksiHarianRPL'])->name('transaksi.transaksiHarianRPL');
 
 
 
