@@ -72,18 +72,26 @@ export default function StokPage({ produk }: Props) {
         { name: 'Stok Masuk', selector: (row) => `${row.stok_masukSementara} pcs`, sortable: true },
         { name: 'Stok Akhir', selector: (row) => `${row.stok_akhirSementara} pcs`, sortable: true },
         {
-            name: 'Aksi',
+            name: 'Input Stok',
             cell: (row) => (
                 <div className="flex items-center gap-2">
-                    <input
-                        type="number"
-                        className="input input-sm input-bordered w-24 border bg-[#eeececf1]"
-                        value={stokInput[row.id] ?? ''}
-                        onChange={(e) => setStokInput((prev) => ({ ...prev, [row.id]: e.target.value }))}
-                    />
-                    <button className="btn btn-sm btn-primary" onClick={() => handleSubmit(row)}>
-                        Simpan
-                    </button>
+                    <form
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                            handleSubmit(row);
+                        }}
+                    >
+                        <input
+                            type="number"
+                            placeholder="Stok masuk"
+                            className="input input-sm input-bordered w-24 border bg-[#eeececf1]"
+                            value={stokInput[row.id] ?? ''}
+                            onChange={(e) => setStokInput((prev) => ({ ...prev, [row.id]: e.target.value }))}
+                        />
+                        {/* <button className="btn btn-sm btn-primary" type="submit">
+                            Simpan
+                        </button> */}
+                    </form>
                 </div>
             ),
         },

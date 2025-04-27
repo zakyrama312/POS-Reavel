@@ -128,7 +128,9 @@ class ProdukController extends Controller
 
     public function produkList()
     {
-        $produk = Produk::with(['kategori', 'penitip'])->get();
+        $produk = Produk::with(['kategori', 'penitip'])
+            ->orderBy('stok_akhirSementara', 'desc')
+            ->get();
         $penitips = Penitip::select('id', 'nama_penitip')->get();
         $kategoris = Kategori::select('id', 'nama_kategori')->get();
 

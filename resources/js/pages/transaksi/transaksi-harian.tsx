@@ -1,7 +1,7 @@
 import PointofSales from '@/components/pointofSales';
 import { Link } from '@inertiajs/react';
 import { Printer } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 interface TransaksiItem {
     id: number;
@@ -25,6 +25,32 @@ export default function Harian({ transaksi_items }: Props) {
 
     useEffect(() => {
         setData(transaksi_items);
+    }, [transaksi_items]);
+
+    const groupedData = useMemo(() => {
+        const groupMap = new Map<string, TransaksiItem>();
+
+        transaksi_items.forEach((item) => {
+            const key = `${item.nama_produk}-${item.nama_penitip}`;
+            if (!groupMap.has(key)) {
+                groupMap.set(key, { ...item });
+            } else {
+                const existing = groupMap.get(key)!;
+                groupMap.set(key, {
+                    ...existing,
+                    jumlah_terjual: existing.jumlah_terjual + item.jumlah_terjual,
+                    total: existing.total + item.total,
+                    laba: existing.laba + item.laba,
+                    uang_kembali: existing.uang_kembali + item.uang_kembali,
+                    // stok_awal tetap ambil dari existing
+                    // harga tetap ambil dari existing
+                    // sisa kita update ambil dari item terakhir (yang sekarang)
+                    sisa: existing.stok_awal - (existing.jumlah_terjual + item.jumlah_terjual),
+                });
+            }
+        });
+
+        return Array.from(groupMap.values());
     }, [transaksi_items]);
 
     const totalSemua = data.reduce((acc, item) => acc + item.total, 0);
@@ -78,8 +104,8 @@ export default function Harian({ transaksi_items }: Props) {
                                 </tr>
                             </thead>
                             <tbody>
-                                {data.map((item, index) => (
-                                    <tr key={item.id}>
+                                {groupedData.map((item, index) => (
+                                    <tr key={index}>
                                         <td className="border px-2 py-1 text-center">{index + 1}</td>
                                         <td className="border px-2 py-1">{item.nama_produk}</td>
                                         <td className="border px-2 py-1 text-right">Rp {item.harga.toLocaleString()}</td>

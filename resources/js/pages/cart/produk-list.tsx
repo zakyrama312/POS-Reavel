@@ -3,9 +3,9 @@ import PointofSales from '@/components/pointofSales';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Link, router } from '@inertiajs/react';
-import { ShoppingCart, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { Head, Link, router } from '@inertiajs/react';
+import { Coffee, Popcorn, ShoppingCart, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { NumericFormat } from 'react-number-format';
 
 interface Produk {
@@ -31,7 +31,14 @@ interface Props {
 
 export default function POSPage({ produk: initialProduk }: Props) {
     const [produk, setProduk] = useState<Produk[]>(initialProduk);
-    const [cart, setCart] = useState<CartItem[]>([]);
+    const [cart, setCart] = useState<CartItem[]>(() => {
+        const storedCart = localStorage.getItem('cart');
+        return storedCart ? JSON.parse(storedCart) : [];
+    });
+
+    useEffect(() => {
+        localStorage.setItem('cart', JSON.stringify(cart));
+    }, [cart]);
     const [search, setSearch] = useState('');
     const [selectedProduct, setSelectedProduct] = useState<Produk | null>(null);
     const [quantity, setQuantity] = useState(1);
@@ -68,6 +75,7 @@ export default function POSPage({ produk: initialProduk }: Props) {
             onSuccess: () => {
                 setCart([]);
                 setBayar(0);
+                localStorage.removeItem('cart');
             },
         });
     };
@@ -80,8 +88,10 @@ export default function POSPage({ produk: initialProduk }: Props) {
             p.kategori.nama_kategori.toLowerCase().includes(search.toLowerCase()),
     );
     const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-    const paginatedProducts = filteredProducts.slice((currentPage - 1) * productsPerPage, currentPage * productsPerPage);
+    const sortedProducts = filteredProducts.sort((a, b) => b.stok_akhirSementara - a.stok_akhirSementara);
 
+    // const paginatedProducts = filteredProducts.slice((currentPage - 1) * productsPerPage, currentPage * productsPerPage);
+    const paginatedProducts = sortedProducts.slice((currentPage - 1) * productsPerPage, currentPage * productsPerPage);
     const addToCart = () => {
         if (!selectedProduct) return;
         // Cek stok lokal
@@ -131,6 +141,7 @@ export default function POSPage({ produk: initialProduk }: Props) {
 
     return (
         <>
+            <Head title="Point of Sales" />
             <PointofSales />
             <FlashAlert />
             <div className="flex flex-col gap-4 p-4 md:flex-row">
@@ -169,9 +180,9 @@ export default function POSPage({ produk: initialProduk }: Props) {
                                     <div className="flex justify-between">
                                         <div className="font-semibold">{product.nama_produk}</div>
                                         <span
-                                            className={`flex h-4 w-6 items-center justify-center rounded-full ${product.kategori.nama_kategori === 'Minuman' ? 'bg-blue-300' : 'bg-orange-300'}`}
+                                            className={`flex h-4 w-6 items-center justify-center rounded ${product.kategori.nama_kategori === 'Minuman' ? 'text-[#2727ef]' : 'text-[#d7900c]'}`}
                                         >
-                                            {product.kategori.nama_kategori === 'Minuman' ? '☕' : '👜'}
+                                            {product.kategori.nama_kategori === 'Minuman' ? <Coffee /> : <Popcorn />}
                                         </span>
                                     </div>
                                     <span className="text-sm text-gray-500">{product.penitip.nama_penitip}</span>
@@ -268,17 +279,22 @@ export default function POSPage({ produk: initialProduk }: Props) {
                                 <DialogTitle>{selectedProduct.nama_produk}</DialogTitle>
                             </DialogHeader>
                             <div className="space-y-2">
-                                <label className="block text-sm">Jumlah</label>
-                                <input
-                                    type="number"
-                                    value={quantity}
-                                    onChange={(e) => setQuantity(Number(e.target.value))}
-                                    className="w-full rounded border p-2"
-                                />
-                                {error && <p className="text-sm text-red-500">{error}</p>}
-                                <Button className="mt-2 w-full" onClick={addToCart}>
-                                    Tambah ke Keranjang
-                                </Button>
+                                <form
+                                    onSubmit={(e) => {
+                                        e.preventDefault();
+                                        addToCart();
+                                    }}
+                                >
+                                    <label className="block text-sm">Jumlah</label>
+                                    <input
+                                        type="number"
+                                        value={quantity}
+                                        onChange={(e) => setQuantity(Number(e.target.value))}
+                                        className="w-full rounded border p-2"
+                                    />
+                                    {error && <p className="text-sm text-red-500">{error}</p>}
+                                    <Button className="mt-2 w-full">Tambah ke Keranjang</Button>
+                                </form>
                             </div>
                         </DialogContent>
                     </Dialog>

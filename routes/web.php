@@ -63,16 +63,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
 
-    // Route::get('produk-list', function () {
-    //     return Inertia::render('cart/produk-list');
-    // })->name('produk-list');
+    Route::get('produk-list', function () {
+        return Inertia::render('cart/produk');
+    })->name('produk-list');
 
 
 
 
-    Route::get('produk-cart', function () {
-        return Inertia::render('cart/posCart');
-    })->name('produk-cart');
+    // Route::get('produk-cart', function () {
+    //     return Inertia::render('cart/posCart');
+    // })->name('produk-cart');
 });
 
 require __DIR__ . '/settings.php';
