@@ -1,5 +1,6 @@
 import PointofSales from '@/components/pointofSales';
-import { Link } from '@inertiajs/react';
+import { Button } from '@/components/ui/button';
+import { router } from '@inertiajs/react';
 import { Printer } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -54,8 +55,6 @@ export default function HarianRPL({ transaksi_items }: Props) {
     }, [transaksi_items]);
 
     const totalSemua = data.reduce((acc, item) => acc + item.total, 0);
-    const totalLaba = data.reduce((acc, item) => acc + item.laba, 0);
-    const totalUangKembali = data.reduce((acc, item) => acc + item.uang_kembali, 0);
 
     return (
         <>
@@ -63,18 +62,21 @@ export default function HarianRPL({ transaksi_items }: Props) {
             <div className="p-4">
                 <div className="rounded-xl bg-white p-4 shadow">
                     <div className="mb-4 flex items-center justify-between">
-                        <Link href="/transaksi-harian" className="btn border-0 bg-[#1de223] shadow-none hover:bg-[#1de223a4]">
+                        <Button
+                            onClick={() => router.visit('/transaksi-harian')}
+                            className="btn border-0 bg-[#248ae9] shadow-none hover:bg-[#248ae9bd]"
+                        >
                             Penitip
-                        </Link>
+                        </Button>
                         <div className="flex gap-1">
-                            <Link href="/print-transaksi-harian-rpl" className="btn border-0 bg-[#f25353] shadow-none" title="Print Transaksi Harian">
+                            <Button onClick={() => window.print()} className="btn border-0 bg-[#f25353] shadow-none" title="Print Transaksi Harian">
                                 <Printer />
-                            </Link>
+                            </Button>
                         </div>
                     </div>
                     <div className="mb-4 flex items-center justify-between">
                         <h1 className="text-2xl font-bold">Transaksi Harian</h1>
-                        <p className="font-tiny text-lg text-gray-600">
+                        <p className="font-tiny print-visible text-lg text-gray-600">
                             {new Date().toLocaleDateString('id-ID', {
                                 weekday: 'long',
                                 day: '2-digit',
@@ -95,8 +97,6 @@ export default function HarianRPL({ transaksi_items }: Props) {
                                     <th className="border px-2 py-1">Sisa</th>
                                     <th className="border px-2 py-1">Terjual</th>
                                     <th className="border px-2 py-1">Total</th>
-                                    <th className="border px-2 py-1">Laba</th>
-                                    <th className="border px-2 py-1">Uang Kembali</th>
                                     <th className="border px-2 py-1">Penitip</th>
                                 </tr>
                             </thead>
@@ -110,8 +110,6 @@ export default function HarianRPL({ transaksi_items }: Props) {
                                         <td className="border px-2 py-1 text-center">{item.sisa}</td>
                                         <td className="border px-2 py-1 text-center">{item.jumlah_terjual}</td>
                                         <td className="border px-2 py-1 text-right">Rp {item.total.toLocaleString()}</td>
-                                        <td className="border px-2 py-1 text-right">Rp {item.laba.toLocaleString()}</td>
-                                        <td className="border px-2 py-1 text-right">Rp {item.uang_kembali.toLocaleString()}</td>
                                         <td className="border px-2 py-1">{item.nama_penitip}</td>
                                     </tr>
                                 ))}
@@ -122,8 +120,6 @@ export default function HarianRPL({ transaksi_items }: Props) {
                                         Total
                                     </td>
                                     <td className="border px-2 py-1 text-right text-green-600">Rp {totalSemua.toLocaleString()}</td>
-                                    <td className="border px-2 py-1 text-right text-blue-600">Rp {totalLaba.toLocaleString()}</td>
-                                    <td className="border px-2 py-1 text-right text-orange-600">Rp {totalUangKembali.toLocaleString()}</td>
                                     <td className="border px-2 py-1"></td>
                                 </tr>
                             </tfoot>

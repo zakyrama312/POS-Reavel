@@ -1,8 +1,8 @@
 import PointofSales from '@/components/pointofSales';
-import { Link } from '@inertiajs/react';
+import { Button } from '@/components/ui/button';
+import { router } from '@inertiajs/react';
 import { Printer } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-
 interface TransaksiItem {
     id: number;
     nama_produk: string;
@@ -63,21 +63,28 @@ export default function Harian({ transaksi_items }: Props) {
             <div className="p-4">
                 <div className="rounded-xl bg-white p-4 shadow">
                     <div className="mb-4 flex items-center justify-between">
-                        <Link href="/transaksi-harian-rpl" className="btn border-0 bg-[#d73fd7] shadow-none hover:bg-[#a056b2]">
+                        <Button
+                            onClick={() => router.visit('/transaksi-harian-rpl')}
+                            className="btn border-0 bg-[#d73fd7] shadow-none hover:bg-[#a056b2]"
+                        >
                             RPL
-                        </Link>
+                        </Button>
                         <div className="flex gap-1">
-                            <Link href="/print-transaksi-harian" className="btn border-0 bg-[#f25353] shadow-none" title="Print Transaksi Harian">
+                            <Button className="btn border-0 bg-[#f25353] shadow-none" onClick={() => window.print()} title="Print Transaksi Harian">
                                 <Printer />
-                            </Link>
-                            <Link href="/print-label-transaksi-harian" className="btn border-0 bg-[#f79a18] shadow-none" title="Print Label">
+                            </Button>
+                            <Button
+                                onClick={() => router.visit('/print-label-transaksi-harian')}
+                                className="btn border-0 bg-[#f79a18] shadow-none"
+                                title="Print Label"
+                            >
                                 <Printer />
-                            </Link>
+                            </Button>
                         </div>
                     </div>
                     <div className="mb-4 flex items-center justify-between">
                         <h1 className="text-2xl font-bold">Transaksi Harian</h1>
-                        <p className="font-tiny text-lg text-gray-600">
+                        <p className="font-tiny print-visible text-lg text-gray-600">
                             {new Date().toLocaleDateString('id-ID', {
                                 weekday: 'long',
                                 day: '2-digit',

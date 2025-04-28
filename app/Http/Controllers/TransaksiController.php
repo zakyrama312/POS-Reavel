@@ -81,22 +81,31 @@ class TransaksiController extends Controller
         return back()->with('success', 'Transaksi berhasil ');
     }
 
-
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Transaksi $transaksi)
+    public function laporanPenitip()
     {
-        //
-    }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Transaksi $transaksi)
-    {
-        //
+        $laporanPenitip = Transaksi_item::with('produk', 'penitip')
+            ->whereNot('id_penitip', 2)
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'nama_produk' => $item->produk->nama_produk ?? '',
+                    'harga' => $item->harga,
+                    'stok_awal' => $item->produk->stok_masukSementara ?? 0,
+                    'sisa' => $item->produk->stok_masukSementara - $item->jumlah_beli ?? 0,
+                    'jumlah_terjual' => $item->jumlah_beli ?? 0,
+                    'total' => $item->total_harga ?? 0,
+                    'laba' => $item->laba ?? 0,
+                    'uang_kembali' => $item->total_uang_penitip ?? 0,
+                    'nama_penitip' => $item->penitip->nama_penitip ?? '',
+                    'created_at' => $item->created_at,
+                ];
+            });
+
+        return Inertia::render('laporan/laporan-penjualan-penitip', [
+            'laporanPenitip' => $laporanPenitip,
+        ]);
     }
 
     public function transaksiHarian()

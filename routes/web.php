@@ -7,6 +7,7 @@ use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\PenitipController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\PenggunaController;
+use App\Http\Controllers\PrintController;
 use App\Http\Controllers\TransaksiController;
 use App\Http\Controllers\ProdukStokController;
 
@@ -54,18 +55,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/produk/reset', [ProdukController::class, 'resetStok']);
     Route::put('/produk/update-stok/{id}', [ProdukController::class, 'updateStok'])->name('produk.updateStok');
 
-
     // Transaksi
-    // routes/web.php
     Route::post('/transaksi', [TransaksiController::class, 'store'])->name('transaksi.store');
     Route::get('/transaksi-harian', [TransaksiController::class, 'transaksiHarian'])->name('transaksi.transaksiHarian');
     Route::get('/transaksi-harian-rpl', [TransaksiController::class, 'transaksiHarianRPL'])->name('transaksi.transaksiHarianRPL');
 
+    //Laporan
+    Route::get('/laporan-penjualan-penitip', [TransaksiController::class, 'laporanPenitip'])->name('transaksi.laporanPenitip');
+
+    // Print
+    Route::get('print-label-transaksi-harian', [PrintController::class, 'printLabel'])->name('printLabel');
 
 
-    Route::get('produk-list', function () {
-        return Inertia::render('cart/produk');
-    })->name('produk-list');
+
+    // Route::get('laporan-penjualan-penitip', function () {
+    //     return Inertia::render('laporan/laporan-penjualan-penitip');
+    // })->name('laporan-penjualan-penitip');
 
 
 

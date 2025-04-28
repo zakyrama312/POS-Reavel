@@ -55,8 +55,18 @@ export function AppSidebar() {
         ...(user?.role === 'admin'
             ? [
                   {
-                      title: 'Laporan Penjualan',
-                      href: '/laporan-penjualan',
+                      title: 'Laporan Penjualan Penitip',
+                      href: '/laporan-penjualan-penitip',
+                      icon: Book,
+                  },
+                  {
+                      title: 'Laporan Penjualan RPL',
+                      href: '/laporan-stok-rpl',
+                      icon: Book,
+                  },
+                  {
+                      title: 'Laporan Stok',
+                      href: '/laporan-stok',
                       icon: Book,
                   },
               ]

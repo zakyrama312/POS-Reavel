@@ -25,33 +25,7 @@ class ProdukStokController extends Controller
 
         return back()->with('success', 'Stok berhasil direset.');
     }
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Produk_stok $produk_stok)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Produk_stok $produk_stok)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Produk_stok $produk_stok, $id)
     {
         $request->validate([

@@ -178,14 +178,14 @@ export default function POSPage({ produk: initialProduk }: Props) {
                             >
                                 <CardContent className="p-3">
                                     <div className="flex justify-between">
-                                        <div className="font-semibold">{product.nama_produk}</div>
+                                        <div className="font-semibold capitalize">{product.nama_produk}</div>
                                         <span
-                                            className={`flex h-4 w-6 items-center justify-center rounded ${product.kategori.nama_kategori === 'Minuman' ? 'text-[#2727ef]' : 'text-[#d7900c]'}`}
+                                            className={`flex h-4 w-6 items-center justify-center rounded ${product.kategori.nama_kategori === 'Minuman' ? 'text-[#279fef]' : 'text-[#d7900c]'}`}
                                         >
                                             {product.kategori.nama_kategori === 'Minuman' ? <Coffee /> : <Popcorn />}
                                         </span>
                                     </div>
-                                    <span className="text-sm text-gray-500">{product.penitip.nama_penitip}</span>
+                                    <span className="font-sans text-xs text-gray-500">{product.penitip.nama_penitip}</span>
                                     <div className="mt-4 flex">
                                         <span className="font-semibold text-red-500">Rp. {product.harga.toLocaleString()}</span>
 

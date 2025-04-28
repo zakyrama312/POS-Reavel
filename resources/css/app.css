@@ -157,3 +157,42 @@
         @apply bg-background text-foreground;
     }
 }
+
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    table,
+    table *,
+    .print-visible {
+        visibility: visible;
+    }
+    table {
+        position: absolute;
+        top: 50px; /* biar ada jarak di bawah tanggal */
+        left: 0;
+        width: 100%;
+    }
+    .print-area {
+        width: 100%;
+        min-height: 100vh;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+    .print-visible {
+        position: absolute;
+        top: 10px;
+        left: 0;
+        font-size: 16px;
+        font-weight: bold;
+    }
+    .print-label-page * {
+        visibility: visible !important;
+    }
+    .print-label-page {
+        width: 100%;
+        min-height: 100vh;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+}
