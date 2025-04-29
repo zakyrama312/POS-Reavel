@@ -172,6 +172,7 @@
         top: 50px; /* biar ada jarak di bawah tanggal */
         left: 0;
         width: 100%;
+        border: 1px solid #000;
     }
     .print-area {
         width: 100%;
@@ -194,5 +195,17 @@
         min-height: 100vh;
         padding: 20px;
         box-sizing: border-box;
+        border: 1px solid #000;
+    }
+    .print-penjualan-page * {
+        visibility: visible !important;
+    }
+    .print-penjualan-page {
+        width: 100%;
+        /* min-height: 100vh; */
+        margin-top: 170px;
+        padding: 10px;
+        box-sizing: border-box;
+        border: 1px solid #000;
     }
 }

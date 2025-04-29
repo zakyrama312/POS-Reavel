@@ -189,9 +189,16 @@ class TransaksiController extends Controller
                     'nama_penitip' => $item->penitip->nama_penitip ?? '',
                 ];
             });
+        $labaPenjualan = Transaksi_item::whereDate('created_at', $today)
+            ->whereNot('id_penitip', 2)
+            ->sum('laba');
+
+        $total = $transaksiItems->sum('total') + $labaPenjualan + 50000;
 
         return Inertia::render('transaksi/transaksi-harian-rpl', [
             'transaksi_items' => $transaksiItems,
+            'laba' => $labaPenjualan,
+            'total' => $total,
         ]);
     }
 }

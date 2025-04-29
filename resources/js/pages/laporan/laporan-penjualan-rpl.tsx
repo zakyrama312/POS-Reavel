@@ -33,6 +33,7 @@ export default function LaporanRpl({ laporanRpl }: PageProps) {
     const [toDate, setToDate] = useState('');
     const [pageSize, setPageSize] = useState(10);
     const [search, setSearch] = useState('');
+    const [pageIndex, setPageIndex] = useState(0);
 
     const groupedData = useMemo(() => {
         const map = new Map<string, LaporanRplItem>();
@@ -92,11 +93,20 @@ export default function LaporanRpl({ laporanRpl }: PageProps) {
     const table = useReactTable({
         data: filteredData,
         columns,
+        state: {
+            pagination: {
+                pageIndex,
+                pageSize,
+            },
+        },
+        onPaginationChange: (updater) => {
+            const newPagination = typeof updater === 'function' ? updater({ pageIndex, pageSize }) : updater;
+            setPageIndex(newPagination.pageIndex);
+            setPageSize(newPagination.pageSize);
+        },
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
-        initialState: { pagination: { pageSize } },
-        onPaginationChange: (updater) => table.setPagination(updater),
     });
 
     const exportExcel = () => {
@@ -219,8 +229,9 @@ export default function LaporanRpl({ laporanRpl }: PageProps) {
                     <select
                         value={pageSize}
                         onChange={(e) => {
-                            setPageSize(Number(e.target.value));
-                            table.setPageSize(Number(e.target.value));
+                            const newSize = Number(e.target.value);
+                            setPageSize(newSize);
+                            setPageIndex(0); // reset ke halaman 1
                         }}
                         className="rounded border p-[1px] text-xs"
                     >
@@ -230,6 +241,7 @@ export default function LaporanRpl({ laporanRpl }: PageProps) {
                             </option>
                         ))}
                     </select>
+
                     <div className="item-center flex gap-2">
                         <Button className="cursor-pointer bg-green-600 hover:bg-green-700" onClick={exportExcel}>
                             <RiFileExcel2Line />
@@ -270,7 +282,7 @@ export default function LaporanRpl({ laporanRpl }: PageProps) {
                         </tbody>
                         <tfoot className="bg-gray-100">
                             <tr>
-                                <td className="px-6 py-2 text-right text-sm font-semibold" colSpan={6}>
+                                <td className="px-6 py-2 text-right text-sm font-semibold" colSpan={7}>
                                     Total
                                 </td>
                                 <td className="px-6 py-2 text-sm font-bold">

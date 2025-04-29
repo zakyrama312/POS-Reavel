@@ -25,6 +25,14 @@ class Produk extends Model
             $produk->kode_produk = 'PRD-' . str_pad($next, 6, '0', STR_PAD_LEFT);
         });
     }
+    public function transaksi_items()
+    {
+        return $this->hasMany(Transaksi_item::class, 'id_produk');
+    }
+    public function produk_stoks()
+    {
+        return $this->hasMany(Produk_stok::class, 'produk_id');
+    }
 
     public function penitip()
     {

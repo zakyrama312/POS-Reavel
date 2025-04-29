@@ -17,11 +17,17 @@ interface TransaksiItem {
     nama_penitip: string;
 }
 
-interface Props {
-    transaksi_items: TransaksiItem[];
+interface LabaRPL {
+    laba: number;
 }
 
-export default function HarianRPL({ transaksi_items }: Props) {
+interface Props {
+    transaksi_items: TransaksiItem[];
+    laba: LabaRPL[];
+    total: number;
+}
+
+export default function HarianRPL({ transaksi_items, laba, total }: Props) {
     const [data, setData] = useState<TransaksiItem[]>([]);
 
     useEffect(() => {
@@ -55,7 +61,6 @@ export default function HarianRPL({ transaksi_items }: Props) {
     }, [transaksi_items]);
 
     const totalSemua = data.reduce((acc, item) => acc + item.total, 0);
-
     return (
         <>
             <PointofSales />
@@ -102,7 +107,7 @@ export default function HarianRPL({ transaksi_items }: Props) {
                             </thead>
                             <tbody>
                                 {groupedData.map((item, index) => (
-                                    <tr key={index}>
+                                    <tr key={index} className="capitalize">
                                         <td className="border px-2 py-1 text-center">{index + 1}</td>
                                         <td className="border px-2 py-1">{item.nama_produk}</td>
                                         <td className="border px-2 py-1 text-right">Rp {item.harga.toLocaleString()}</td>
@@ -124,6 +129,30 @@ export default function HarianRPL({ transaksi_items }: Props) {
                                 </tr>
                             </tfoot>
                         </table>
+                        <div className="card print-penjualan-page mt-5 bg-white shadow-md">
+                            <div className="card-body">
+                                <h2 className="card-title">Ringkasan Penjualan Hari ini</h2>
+                                <div className="grid grid-cols-2 gap-y-2">
+                                    <span>Penjualan RPL</span>
+                                    <span className="text-right font-bold">Rp {totalSemua.toLocaleString('id-ID')}</span>
+
+                                    <span>Laba</span>
+                                    <span className="text-right font-bold">Rp {Number(laba).toLocaleString('id-ID')}</span>
+
+                                    <span>Modal</span>
+                                    <span className="text-right font-bold">Rp 50.000</span>
+
+                                    <div className="col-span-2 my-2 border-t"></div>
+
+                                    <span className="font-semibold">Total</span>
+                                    <span className="text-right font-bold text-green-600">Rp {Number(total).toLocaleString('id-ID')}</span>
+                                </div>
+
+                                <div className="mt-4">
+                                    <span className="text-sm text-gray-500">Pengeluaran :</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

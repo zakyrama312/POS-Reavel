@@ -15,13 +15,17 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $bulanIni = now()->format('Y-m');
+        $bulanIni = now();
 
         // 1. Total Penjualan bulan ini
-        $totalPenjualan = Transaksi::where('bulan', $bulanIni)->sum('total_bayar');
+        $totalPenjualan = Transaksi::whereYear('created_at', $bulanIni->year)
+            ->whereMonth('created_at', $bulanIni->month)
+            ->sum('total_bayar');
 
         // 2. Jumlah Transaksi bulan ini
-        $jumlahTransaksi = Transaksi::where('bulan', $bulanIni)->count();
+        $jumlahTransaksi = Transaksi::whereYear('created_at', $bulanIni->year)
+            ->whereMonth('created_at', $bulanIni->month)
+            ->count();
 
         // 3. Produk terlaris bulan ini
         $produkTerlaris = Transaksi_item::select('id_produk', DB::raw('SUM(jumlah_beli) as total_terjual'))
@@ -29,8 +33,11 @@ class DashboardController extends Controller
             ->whereYear('created_at', now()->year)
             ->groupBy('id_produk')
             ->orderByDesc('total_terjual')
-            ->with('produk') // pastikan relasi `produk` dibuat di model TransaksiItem
+            ->get()
+            ->load('produk') // memuat relasi setelah get()
             ->first();
+
+
 
         // 4. Jumlah Produk
         $jumlahProduk = Produk::count();
@@ -43,15 +50,17 @@ class DashboardController extends Controller
 
         $grafikPenjualan = DB::table('transaksi')
             ->selectRaw('DATE(created_at) as tanggal, SUM(total_bayar) as total')
-            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
-            ->groupBy(DB::raw('DATE(created_at)'))
-            ->orderBy('tanggal')
+            // ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->groupBy(DB::raw('created_at'))
+            ->orderBy('created_at')
             ->get();
         return Inertia::render('dashboard', [
             'totalPenjualan' => $totalPenjualan,
             'jumlahTransaksi' => $jumlahTransaksi,
-            'produkTerlaris' => $produkTerlaris?->produk->nama_produk ?? '-',
-            'jumlahTerjual' => $produkTerlaris?->total_terjual ?? 0,
+            'produkTerlaris' => $produkTerlaris ? [
+                'nama_produk' => $produkTerlaris->produk->nama_produk ?? 'Produk tidak ditemukan',
+                'total_terjual' => $produkTerlaris->total_terjual,
+            ] : null,
             'jumlahProduk' => $jumlahProduk,
             'jumlahPenitip' => $jumlahPenitip,
             'grafikPenjualan' => $grafikPenjualan,

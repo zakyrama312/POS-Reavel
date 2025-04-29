@@ -112,7 +112,7 @@ export default function Harian({ transaksi_items }: Props) {
                             </thead>
                             <tbody>
                                 {groupedData.map((item, index) => (
-                                    <tr key={index}>
+                                    <tr key={index} className="capitalize">
                                         <td className="border px-2 py-1 text-center">{index + 1}</td>
                                         <td className="border px-2 py-1">{item.nama_produk}</td>
                                         <td className="border px-2 py-1 text-right">Rp {item.harga.toLocaleString()}</td>

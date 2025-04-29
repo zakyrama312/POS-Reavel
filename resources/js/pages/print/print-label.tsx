@@ -50,8 +50,8 @@ export default function PrintLabel({ labels }: Props) {
             <div className="grid grid-cols-4 gap-4">
                 {groupedData.map((label) => (
                     <div key={label.id} className="border p-4">
-                        <h5 className="text-lg font-semibold">{label.nama_produk}</h5>
-                        <p className="text-sm">{label.nama_penitip}</p>
+                        <h5 className="text-lg font-semibold capitalize">{label.nama_produk}</h5>
+                        <p className="text-sm capitalize">{label.nama_penitip}</p>
                         <div className="mt-4 flex justify-between">
                             <p className="text-sm font-thin text-red-500">sisa {label.sisa}</p>
                             <p className="text-sm font-bold">Rp. {label.uang_kembali.toLocaleString('id-ID')}</p>

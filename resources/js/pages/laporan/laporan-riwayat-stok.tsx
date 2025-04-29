@@ -29,6 +29,7 @@ export default function LaporanStok({ laporanStok }: PageProps) {
     const [fromDate, setFromDate] = useState('');
     const [toDate, setToDate] = useState('');
     const [pageSize, setPageSize] = useState(10);
+    const [pageIndex, setPageIndex] = useState(0);
 
     const filteredData = useMemo(() => {
         return laporanStok.filter((item) => {
@@ -58,11 +59,20 @@ export default function LaporanStok({ laporanStok }: PageProps) {
     const table = useReactTable({
         data: filteredData,
         columns,
+        state: {
+            pagination: {
+                pageIndex,
+                pageSize,
+            },
+        },
+        onPaginationChange: (updater) => {
+            const newPagination = typeof updater === 'function' ? updater({ pageIndex, pageSize }) : updater;
+            setPageIndex(newPagination.pageIndex);
+            setPageSize(newPagination.pageSize);
+        },
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
-        initialState: { pagination: { pageSize } },
-        onPaginationChange: (updater) => table.setPagination(updater),
     });
 
     const exportExcel = () => {
@@ -112,19 +122,29 @@ export default function LaporanStok({ laporanStok }: PageProps) {
                         className="rounded border p-2 text-sm"
                     />
                     <div className="flex items-center gap-2">
+                        <span className="text-sm font-thin">Filter Tanggal:</span>
                         <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="rounded border p-2 text-sm" />
                         <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="rounded border p-2 text-sm" />
                     </div>
                 </div>
 
                 <div className="flex justify-between">
-                    <select value={pageSize} onChange={(e) => setPageSize(Number(e.target.value))} className="rounded border p-[1px] text-xs">
+                    <select
+                        value={pageSize}
+                        onChange={(e) => {
+                            const newSize = Number(e.target.value);
+                            setPageSize(newSize);
+                            setPageIndex(0); // reset ke halaman 1
+                        }}
+                        className="rounded border p-[1px] text-xs"
+                    >
                         {[10, 25, 50, 100].map((size) => (
                             <option key={size} value={size}>
                                 {size}
                             </option>
                         ))}
                     </select>
+
                     <div className="flex gap-2">
                         <Button className="bg-green-600 hover:bg-green-700" onClick={exportExcel}>
                             <RiFileExcel2Line />

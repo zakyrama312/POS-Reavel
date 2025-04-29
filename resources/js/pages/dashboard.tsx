@@ -16,7 +16,7 @@ interface DashboardProps {
     jumlahProduk: number;
     jumlahPenitip: number;
     produkTerlaris: {
-        nama: string;
+        nama_produk: string;
         total_terjual: number;
     } | null;
     grafikPenjualan: Array<{
@@ -34,10 +34,9 @@ export default function Dashboard({ totalPenjualan, jumlahTransaksi, jumlahProdu
                     {/* Card Total Penjualan */}
                     <div className="rounded-xl border bg-white p-4 shadow-sm">
                         <h2 className="text-lg font-semibold">Total Penjualan</h2>
-                        <p className="mt-2 text-2xl font-bold text-green-600">Rp {totalPenjualan.toLocaleString('id-ID')}</p>
+                        <p className="mt-2 text-2xl font-bold text-green-600">Rp {Number(totalPenjualan.toLocaleString('id-ID'))}</p>
                         <p className="text-sm text-gray-500">Bulan Ini</p>
                     </div>
-
                     {/* Card Jumlah Transaksi */}
                     <div className="rounded-xl border bg-white p-4 shadow-sm">
                         <h2 className="text-lg font-semibold">Jumlah Transaksi</h2>
@@ -50,7 +49,7 @@ export default function Dashboard({ totalPenjualan, jumlahTransaksi, jumlahProdu
                         <h2 className="text-lg font-semibold">Produk Terlaris</h2>
                         {produkTerlaris ? (
                             <>
-                                <p className="mt-2 text-2xl font-bold text-purple-600">{produkTerlaris.nama}</p>
+                                <p className="mt-2 text-2xl font-bold text-purple-600 capitalize">{produkTerlaris.nama_produk}</p>
                                 <p className="text-sm text-gray-500">{produkTerlaris.total_terjual} pcs terjual</p>
                             </>
                         ) : (
@@ -62,12 +61,14 @@ export default function Dashboard({ totalPenjualan, jumlahTransaksi, jumlahProdu
                     <div className="rounded-xl border bg-white p-4 shadow-sm">
                         <h2 className="text-lg font-semibold">Jumlah Produk</h2>
                         <p className="mt-2 text-2xl font-bold text-orange-600">{jumlahProduk}</p>
+                        <p className="text-sm text-gray-500">Produk</p>
                     </div>
 
                     {/* Card Jumlah Penitip */}
                     <div className="rounded-xl border bg-white p-4 shadow-sm">
                         <h2 className="text-lg font-semibold">Jumlah Penitip</h2>
                         <p className="mt-2 text-2xl font-bold text-pink-600">{jumlahPenitip}</p>
+                        <p className="text-sm text-gray-500">Orang</p>
                     </div>
                 </div>
 

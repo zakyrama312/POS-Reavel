@@ -13,6 +13,7 @@ class Transaksi_item extends Model
     {
         return $this->belongsTo(Produk::class, 'id_produk');
     }
+
     public function penitip()
     {
         return $this->belongsTo(Penitip::class, 'id_penitip');
