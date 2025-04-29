@@ -27,7 +27,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Route::get('dashboard', function () {
     //     return Inertia::render('dashboard');
     // })->name('dashboard');
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     // Pengguna CRUD
     Route::get('pengguna', [PenggunaController::class, 'index'])->name('pengguna.index');
     Route::post('/pengguna', [PenggunaController::class, 'store'])->name('pengguna.store');
