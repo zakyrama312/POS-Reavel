@@ -3,22 +3,31 @@
 use Inertia\Inertia;
 use App\Models\Produk_stok;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Redirect;
+use App\Http\Controllers\PrintController;
 use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\PenitipController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\PenggunaController;
-use App\Http\Controllers\PrintController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TransaksiController;
 use App\Http\Controllers\ProdukStokController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+
+// Route::get('/', function () {
+//     return Inertia::render('welcome');
+// })->name('home');
 
 Route::get('/', function () {
-    return Inertia::render('welcome');
-})->name('home');
+    return Redirect::route('login');
+});
+require __DIR__ . '/auth.php';
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
-    })->name('dashboard');
+    // Route::get('dashboard', function () {
+    //     return Inertia::render('dashboard');
+    // })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
     // Pengguna CRUD
     Route::get('pengguna', [PenggunaController::class, 'index'])->name('pengguna.index');
     Route::post('/pengguna', [PenggunaController::class, 'store'])->name('pengguna.store');
@@ -62,6 +71,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     //Laporan
     Route::get('/laporan-penjualan-penitip', [TransaksiController::class, 'laporanPenitip'])->name('transaksi.laporanPenitip');
+    Route::get('/laporan-penjualan-rpl', [TransaksiController::class, 'laporanRpl'])->name('transaksi.laporanRpl');
+    Route::get('/laporan-riwayat-stok', [ProdukStokController::class, 'laporanStok'])->name('transaksi.laporanStok');
 
     // Print
     Route::get('print-label-transaksi-harian', [PrintController::class, 'printLabel'])->name('printLabel');

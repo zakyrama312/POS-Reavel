@@ -8,6 +8,7 @@ import { Head, router, useForm } from '@inertiajs/react';
 import { ColumnDef, flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, useReactTable } from '@tanstack/react-table';
 import { useCallback, useMemo, useState } from 'react';
 import { NumericFormat } from 'react-number-format';
+import Select from 'react-select';
 
 interface Produk {
     id: number;
@@ -167,19 +168,16 @@ export default function ProdukPage({ produk, penitips, kategoris }: Props) {
                                     onChange={(e) => form.setData('nama_produk', e.target.value)}
                                     required
                                 />
-                                <select
-                                    className="w-full rounded border px-3 py-2"
-                                    value={form.data.id_penitip}
-                                    onChange={(e) => form.setData('id_penitip', e.target.value)}
-                                    required
-                                >
-                                    <option value="">Pilih Penitip</option>
-                                    {penitips.map((p) => (
-                                        <option key={p.id} value={p.id}>
-                                            {p.nama_penitip}
-                                        </option>
-                                    ))}
-                                </select>
+                                <Select
+                                    options={penitips.map((p) => ({ value: p.id, label: p.nama_penitip }))}
+                                    value={penitips
+                                        .map((p) => ({ value: p.id, label: p.nama_penitip }))
+                                        .find((option) => String(option.value) === form.data.id_penitip)}
+                                    onChange={(selected) => form.setData('id_penitip', String(selected?.value ?? ''))}
+                                    placeholder="Pilih Penitip"
+                                    isClearable
+                                />
+
                                 <select
                                     className="w-full rounded border px-3 py-2"
                                     value={form.data.id_kategori}

@@ -68,13 +68,19 @@ class TransaksiController extends Controller
                     'total_uang_penitip' => $totaluangPenitip,
                 ]);
 
-                // Simpan ke produk_stok
-                Produk_stok::create([
-                    'id_produk' => $produk->id,
-                    'id_penitip' => $produk->id_penitip,
-                    'stok_masuk' => 0,
-                    'stok_akhir' => $produk->stok_akhirSementara,
-                ]);
+                $produkStok = Produk_stok::where('id_produk', $produk->id)
+                    ->whereDate('created_at', today()) // ambil data stok hari ini
+                    ->latest() // jaga-jaga kalau ada lebih dari 1
+                    ->first();
+
+                if ($produkStok) {
+                    $produkStok->update([
+                        'stok_akhir' => $produk->stok_akhirSementara,
+                    ]);
+                } else {
+                    // Kalau gak ada record untuk hari ini, bisa warning/log atau fallback
+                    // Misal: abort(500, 'Stok harian tidak ditemukan.');
+                }
             }
         });
 
@@ -105,6 +111,32 @@ class TransaksiController extends Controller
 
         return Inertia::render('laporan/laporan-penjualan-penitip', [
             'laporanPenitip' => $laporanPenitip,
+        ]);
+    }
+    public function laporanRpl()
+    {
+
+        $laporanRpl = Transaksi_item::with('produk', 'penitip')
+            ->where('id_penitip', 2)
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'nama_produk' => $item->produk->nama_produk ?? '',
+                    'harga' => $item->harga,
+                    'stok_awal' => $item->produk->stok_masukSementara ?? 0,
+                    'sisa' => $item->produk->stok_masukSementara - $item->jumlah_beli ?? 0,
+                    'jumlah_terjual' => $item->jumlah_beli ?? 0,
+                    'total' => $item->total_harga ?? 0,
+                    'laba' => $item->laba ?? 0,
+                    'uang_kembali' => $item->total_uang_penitip ?? 0,
+                    'nama_penitip' => $item->penitip->nama_penitip ?? '',
+                    'created_at' => $item->created_at,
+                ];
+            });
+
+        return Inertia::render('laporan/laporan-penjualan-rpl', [
+            'laporanRpl' => $laporanRpl,
         ]);
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Inertia\Inertia;
 use App\Models\Produk;
 use App\Models\Produk_stok;
 use Illuminate\Http\Request;
@@ -55,11 +56,25 @@ class ProdukStokController extends Controller
         return back()->with('success', 'Stok berhasil diperbarui.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Produk_stok $produk_stok)
+    public function laporanStok()
     {
-        //
+        $stok = Produk_stok::with(['produk', 'penitip']) // sesuaikan relasi kamu
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'nama_penitip' => $item->penitip->nama_penitip ?? '-',
+                    'nama_produk' => $item->produk->nama_produk ?? '-',
+                    'stok_awal' => $item->stok_masuk,
+                    'sisa' => $item->stok_akhir,
+                    'created_at' => $item->created_at->toISOString(),
+                ];
+            });
+
+        return Inertia::render('laporan/laporan-riwayat-stok', [
+            'laporanStok' => $stok,
+        ]);
+
     }
 }

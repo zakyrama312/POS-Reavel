@@ -61,12 +61,12 @@ export function AppSidebar() {
                   },
                   {
                       title: 'Laporan Penjualan RPL',
-                      href: '/laporan-stok-rpl',
+                      href: '/laporan-penjualan-rpl',
                       icon: Book,
                   },
                   {
-                      title: 'Laporan Stok',
-                      href: '/laporan-stok',
+                      title: 'Laporan Riwayat Stok',
+                      href: '/laporan-riwayat-stok',
                       icon: Book,
                   },
               ]

@@ -6,6 +6,8 @@ import { ColumnDef, flexRender, getCoreRowModel, getPaginationRowModel, getSorte
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { useMemo, useState } from 'react';
+import { FaRegFilePdf } from 'react-icons/fa6';
+import { RiFileExcel2Line } from 'react-icons/ri';
 import * as XLSX from 'xlsx';
 
 interface LaporanPenitipItem {
@@ -27,10 +29,10 @@ interface PageProps {
 }
 
 export default function LaporanPenitip({ laporanPenitip }: PageProps) {
-    const [search, setSearch] = useState('');
     const [fromDate, setFromDate] = useState('');
     const [toDate, setToDate] = useState('');
     const [pageSize, setPageSize] = useState(10);
+    const [search, setSearch] = useState('');
 
     const groupedData = useMemo(() => {
         const map = new Map<string, LaporanPenitipItem>();
@@ -63,7 +65,7 @@ export default function LaporanPenitip({ laporanPenitip }: PageProps) {
             const lowerSearch = search.toLowerCase();
             const date = new Date(item.created_at);
             const from = fromDate ? new Date(fromDate) : null;
-            const to = toDate ? new Date(toDate) : null;
+            const to = toDate ? new Date(toDate + 'T23:59:59') : null; // ini triknya
 
             const matchSearch = item.nama_produk.toLowerCase().includes(lowerSearch) || item.nama_penitip.toLowerCase().includes(lowerSearch);
             const matchFrom = from ? date >= from : true;
@@ -74,6 +76,7 @@ export default function LaporanPenitip({ laporanPenitip }: PageProps) {
     }, [groupedData, search, fromDate, toDate]);
 
     const columns: ColumnDef<LaporanPenitipItem>[] = [
+        { id: 'nomor', header: 'No', cell: ({ row }) => row.index + 1 },
         { accessorKey: 'nama_penitip', header: 'Nama Penitip' },
         { accessorKey: 'nama_produk', header: 'Nama Produk' },
         { accessorKey: 'harga', header: 'Harga', cell: (info) => formatRupiah(info.getValue<number>()) },
@@ -97,7 +100,33 @@ export default function LaporanPenitip({ laporanPenitip }: PageProps) {
     });
 
     const exportExcel = () => {
-        const worksheet = XLSX.utils.json_to_sheet(filteredData);
+        const data = filteredData.map((row) => ({
+            'Nama Penitip': row.nama_penitip,
+            'Nama Produk': row.nama_produk,
+            Harga: row.harga,
+            'Stok Awal': row.stok_awal,
+            Sisa: row.sisa,
+            'Jumlah Terjual': row.jumlah_terjual,
+            Total: row.total,
+            Laba: row.laba,
+            'Uang Kembali': row.uang_kembali,
+            Tanggal: new Date(row.created_at).toLocaleDateString('id-ID'),
+        }));
+
+        data.push({
+            'Nama Penitip': '',
+            'Nama Produk': '',
+            Harga: 0,
+            'Stok Awal': 0,
+            Sisa: 0,
+            'Jumlah Terjual': 0,
+            Total: filteredData.reduce((sum, item) => sum + item.total, 0),
+            Laba: filteredData.reduce((sum, item) => sum + item.laba, 0),
+            'Uang Kembali': filteredData.reduce((sum, item) => sum + item.uang_kembali, 0),
+            Tanggal: '',
+        });
+
+        const worksheet = XLSX.utils.json_to_sheet(data);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Laporan');
         XLSX.writeFile(workbook, 'laporan-penitip.xlsx');
@@ -105,21 +134,38 @@ export default function LaporanPenitip({ laporanPenitip }: PageProps) {
 
     const exportPDF = () => {
         const doc = new jsPDF();
+        const body = filteredData.map((row) => [
+            row.nama_penitip,
+            row.nama_produk,
+            formatRupiah(row.harga),
+            row.stok_awal,
+            row.sisa,
+            row.jumlah_terjual,
+            formatRupiah(row.total),
+            formatRupiah(row.laba),
+            formatRupiah(row.uang_kembali),
+            new Date(row.created_at).toLocaleDateString('id-ID'),
+        ]);
+
+        // Tambahkan row total
+        body.push([
+            '',
+            '',
+            '',
+            '',
+            '',
+            'Total',
+            formatRupiah(filteredData.reduce((sum, item) => sum + item.total, 0)),
+            formatRupiah(filteredData.reduce((sum, item) => sum + item.laba, 0)),
+            formatRupiah(filteredData.reduce((sum, item) => sum + item.uang_kembali, 0)),
+            '',
+        ]);
+
         autoTable(doc, {
             head: [columns.map((col) => col.header as string)],
-            body: filteredData.map((row) => [
-                row.nama_penitip,
-                row.nama_produk,
-                formatRupiah(row.harga),
-                row.stok_awal,
-                row.sisa,
-                row.jumlah_terjual,
-                formatRupiah(row.total),
-                formatRupiah(row.laba),
-                formatRupiah(row.uang_kembali),
-                new Date(row.created_at).toLocaleDateString('id-ID'),
-            ]),
+            body,
         });
+
         doc.save('laporan-penitip.pdf');
     };
 
@@ -127,42 +173,55 @@ export default function LaporanPenitip({ laporanPenitip }: PageProps) {
         <AppLayout breadcrumbs={[{ title: 'Laporan Penitip', href: '/laporan-penjualan-penitip' }]}>
             <Head title="Laporan Penitip" />
             <div className="space-y-4 p-6">
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                     <input
                         type="text"
+                        placeholder="Cari produk/penitip..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        placeholder="Cari produk/penitip..."
                         className="rounded border p-2 text-sm"
                     />
                     <div className="flex items-center gap-2">
-                        <span>Filter Tanggal:</span>
-                        <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="rounded border p-2 text-sm" />
-                        <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="rounded border p-2 text-sm" />
+                        <span className="text-sm font-thin">Filter Tanggal:</span>
+                        <input
+                            type="date"
+                            value={fromDate}
+                            onChange={(e) => setFromDate(e.target.value)}
+                            className="rounded border p-2 text-sm text-[#acabab]"
+                        />
+                        <input
+                            type="date"
+                            value={toDate}
+                            onChange={(e) => setToDate(e.target.value)}
+                            className="rounded border p-2 text-sm text-[#acabab]"
+                        />
                     </div>
+                </div>
+                <div className="flex justify-between">
                     <select
                         value={pageSize}
                         onChange={(e) => {
                             setPageSize(Number(e.target.value));
                             table.setPageSize(Number(e.target.value));
                         }}
-                        className="rounded border p-2 text-sm"
+                        className="rounded border p-[1px] text-xs"
                     >
                         {[10, 25, 50, 100].map((size) => (
                             <option key={size} value={size}>
-                                {size} per page
+                                {size}
                             </option>
                         ))}
                     </select>
-                    <Button onClick={exportExcel} className="bg-green-600 text-sm text-white hover:bg-green-700">
-                        Export Excel
-                    </Button>
-                    <Button variant="destructive" onClick={exportPDF} className="text-sm">
-                        Export PDF
-                    </Button>
+                    <div className="item-center flex gap-2">
+                        <Button className="cursor-pointer bg-green-600 hover:bg-green-700" onClick={exportExcel}>
+                            <RiFileExcel2Line />
+                        </Button>
+                        <Button className="cursor-pointer bg-red-500 hover:bg-red-700" onClick={exportPDF}>
+                            <FaRegFilePdf />
+                        </Button>
+                    </div>
                 </div>
-
-                <div className="overflow-x-auto rounded shadow">
+                <div className="overflow-x-auto shadow">
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                             {table.getHeaderGroups().map((headerGroup) => (
@@ -171,10 +230,10 @@ export default function LaporanPenitip({ laporanPenitip }: PageProps) {
                                         <th
                                             key={header.id}
                                             onClick={header.column.getToggleSortingHandler()}
-                                            className="cursor-pointer px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase select-none"
+                                            className="cursor-pointer px-6 py-3 text-left text-sm font-medium text-gray-500 capitalize select-none"
                                         >
                                             {flexRender(header.column.columnDef.header, header.getContext())}
-                                            {header.column.getIsSorted() ? (header.column.getIsSorted() === 'asc' ? ' ▲' : ' ▼') : ''}
+                                            {header.column.getIsSorted() ? (header.column.getIsSorted() === 'asc' ? ' \u2191' : ' \u2193') : ''}
                                         </th>
                                     ))}
                                 </tr>
@@ -191,6 +250,23 @@ export default function LaporanPenitip({ laporanPenitip }: PageProps) {
                                 </tr>
                             ))}
                         </tbody>
+                        <tfoot className="bg-gray-100">
+                            <tr>
+                                <td className="px-6 py-2 text-right text-sm font-semibold" colSpan={6}>
+                                    Total
+                                </td>
+                                <td className="px-6 py-2 text-sm font-bold">
+                                    {formatRupiah(filteredData.reduce((sum, item) => sum + item.total, 0))}
+                                </td>
+                                <td className="px-6 py-2 text-sm font-bold">
+                                    {formatRupiah(filteredData.reduce((sum, item) => sum + item.laba, 0))}
+                                </td>
+                                <td className="px-6 py-2 text-sm font-bold">
+                                    {formatRupiah(filteredData.reduce((sum, item) => sum + item.uang_kembali, 0))}
+                                </td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
 
