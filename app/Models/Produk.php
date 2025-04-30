@@ -31,7 +31,7 @@ class Produk extends Model
     }
     public function produk_stoks()
     {
-        return $this->hasMany(Produk_stok::class, 'produk_id');
+        return $this->hasMany(Produk_stok::class, 'id_produk');
     }
 
     public function penitip()
@@ -43,4 +43,10 @@ class Produk extends Model
     {
         return $this->belongsTo(Kategori::class, 'id_kategori');
     }
+    // Transaksi_item.php
+    public function transaksi()
+    {
+        return $this->belongsTo(Transaksi::class, 'id_transaksi');
+    }
+
 }

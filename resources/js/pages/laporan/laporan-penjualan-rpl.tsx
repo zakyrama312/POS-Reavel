@@ -10,7 +10,7 @@ import { FaRegFilePdf } from 'react-icons/fa6';
 import { RiFileExcel2Line } from 'react-icons/ri';
 import * as XLSX from 'xlsx';
 
-interface LaporanRplItem {
+interface LaporanPenitipItem {
     id: number;
     nama_penitip: string;
     nama_produk: string;
@@ -25,59 +25,36 @@ interface LaporanRplItem {
 }
 
 interface PageProps {
-    laporanRpl: LaporanRplItem[];
+    laporanPenitip: LaporanPenitipItem[];
 }
 
-export default function LaporanRpl({ laporanRpl }: PageProps) {
+export default function LaporanPenitip({ laporanPenitip }: PageProps) {
     const [fromDate, setFromDate] = useState('');
     const [toDate, setToDate] = useState('');
     const [pageSize, setPageSize] = useState(10);
     const [search, setSearch] = useState('');
     const [pageIndex, setPageIndex] = useState(0);
 
-    const groupedData = useMemo(() => {
-        const map = new Map<string, LaporanRplItem>();
-
-        laporanRpl.forEach((item) => {
-            const date = new Date(item.created_at).toLocaleDateString('id-ID');
-            const key = `${date}-${item.nama_penitip}-${item.nama_produk}`;
-
-            if (!map.has(key)) {
-                map.set(key, { ...item, created_at: item.created_at });
-            } else {
-                const existing = map.get(key)!;
-                map.set(key, {
-                    ...existing,
-                    stok_awal: Math.max(existing.stok_awal, item.stok_awal), // ambil stok awal terbesar (kalau logikamu gitu)
-                    sisa: Math.min(existing.sisa, item.sisa), // ambil sisa paling kecil (karena makin laku makin habis)
-                    jumlah_terjual: existing.jumlah_terjual + item.jumlah_terjual,
-                    total: existing.total + item.total,
-                    laba: existing.laba + item.laba,
-                    uang_kembali: existing.uang_kembali + item.uang_kembali,
-                });
-            }
-        });
-
-        return Array.from(map.values());
-    }, [laporanRpl]);
-
     const filteredData = useMemo(() => {
-        return groupedData.filter((item) => {
-            const lowerSearch = search.toLowerCase();
+        const filtered = laporanPenitip.filter((item) => {
+            const searchLower = search.toLowerCase();
             const date = new Date(item.created_at);
             const from = fromDate ? new Date(fromDate) : null;
-            const to = toDate ? new Date(toDate + 'T23:59:59') : null; // ini triknya
+            const to = toDate ? new Date(toDate + 'T23:59:59') : null;
 
-            const matchSearch = item.nama_produk.toLowerCase().includes(lowerSearch) || item.nama_penitip.toLowerCase().includes(lowerSearch);
+            const matchSearch = item.nama_produk.toLowerCase().includes(searchLower) || item.nama_penitip.toLowerCase().includes(searchLower);
             const matchFrom = from ? date >= from : true;
             const matchTo = to ? date <= to : true;
 
             return matchSearch && matchFrom && matchTo;
         });
-    }, [groupedData, search, fromDate, toDate]);
 
-    const columns: ColumnDef<LaporanRplItem>[] = [
-        { id: 'nomor', header: 'No', cell: ({ row }) => row.index + 1 },
+        // 🔽 Urutkan dari terbaru ke terlama berdasarkan tanggal
+        return filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    }, [laporanPenitip, search, fromDate, toDate]);
+
+    const columns: ColumnDef<LaporanPenitipItem>[] = [
+        { id: 'no', header: 'No', cell: ({ row }) => row.index + 1 },
         { accessorKey: 'nama_penitip', header: 'Nama Penitip' },
         { accessorKey: 'nama_produk', header: 'Nama Produk' },
         { accessorKey: 'harga', header: 'Harga', cell: (info) => formatRupiah(info.getValue<number>()) },
@@ -93,12 +70,7 @@ export default function LaporanRpl({ laporanRpl }: PageProps) {
     const table = useReactTable({
         data: filteredData,
         columns,
-        state: {
-            pagination: {
-                pageIndex,
-                pageSize,
-            },
-        },
+        state: { pagination: { pageIndex, pageSize } },
         onPaginationChange: (updater) => {
             const newPagination = typeof updater === 'function' ? updater({ pageIndex, pageSize }) : updater;
             setPageIndex(newPagination.pageIndex);
@@ -110,7 +82,8 @@ export default function LaporanRpl({ laporanRpl }: PageProps) {
     });
 
     const exportExcel = () => {
-        const data = filteredData.map((row) => ({
+        const data = filteredData.map((row, index) => ({
+            No: index + 1,
             'Nama Penitip': row.nama_penitip,
             'Nama Produk': row.nama_produk,
             Harga: row.harga,
@@ -124,6 +97,7 @@ export default function LaporanRpl({ laporanRpl }: PageProps) {
         }));
 
         data.push({
+            No: 0,
             'Nama Penitip': '',
             'Nama Produk': '',
             Harga: 0,
@@ -139,7 +113,7 @@ export default function LaporanRpl({ laporanRpl }: PageProps) {
         const worksheet = XLSX.utils.json_to_sheet(data);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Laporan');
-        let filename = 'laporan-penitip';
+        let filename = 'laporan-rpl';
         if (fromDate && toDate) {
             const formatDate = (date: string) => {
                 const [year, month, day] = date.split('-');
@@ -153,7 +127,8 @@ export default function LaporanRpl({ laporanRpl }: PageProps) {
 
     const exportPDF = () => {
         const doc = new jsPDF();
-        const body = filteredData.map((row) => [
+        const body = filteredData.map((row, index) => [
+            index + 1,
             row.nama_penitip,
             row.nama_produk,
             formatRupiah(row.harga),
@@ -166,8 +141,8 @@ export default function LaporanRpl({ laporanRpl }: PageProps) {
             new Date(row.created_at).toLocaleDateString('id-ID'),
         ]);
 
-        // Tambahkan row total
         body.push([
+            '',
             '',
             '',
             '',
@@ -198,8 +173,8 @@ export default function LaporanRpl({ laporanRpl }: PageProps) {
     };
 
     return (
-        <AppLayout breadcrumbs={[{ title: 'Laporan RPL', href: '/laporan-penjualan-rpl' }]}>
-            <Head title="Laporan RPL" />
+        <AppLayout breadcrumbs={[{ title: 'Laporan Penitip', href: '/laporan-penjualan-penitip' }]}>
+            <Head title="Laporan Penitip" />
             <div className="space-y-4 p-6">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                     <input
@@ -225,13 +200,13 @@ export default function LaporanRpl({ laporanRpl }: PageProps) {
                         />
                     </div>
                 </div>
+
                 <div className="flex justify-between">
                     <select
                         value={pageSize}
                         onChange={(e) => {
-                            const newSize = Number(e.target.value);
-                            setPageSize(newSize);
-                            setPageIndex(0); // reset ke halaman 1
+                            setPageSize(Number(e.target.value));
+                            setPageIndex(0);
                         }}
                         className="rounded border p-[1px] text-xs"
                     >
@@ -241,16 +216,16 @@ export default function LaporanRpl({ laporanRpl }: PageProps) {
                             </option>
                         ))}
                     </select>
-
-                    <div className="item-center flex gap-2">
-                        <Button className="cursor-pointer bg-green-600 hover:bg-green-700" onClick={exportExcel}>
+                    <div className="flex gap-2">
+                        <Button className="bg-green-600 hover:bg-green-700" onClick={exportExcel}>
                             <RiFileExcel2Line />
                         </Button>
-                        <Button className="cursor-pointer bg-red-500 hover:bg-red-700" onClick={exportPDF}>
+                        <Button className="bg-red-500 hover:bg-red-700" onClick={exportPDF}>
                             <FaRegFilePdf />
                         </Button>
                     </div>
                 </div>
+
                 <div className="overflow-x-auto shadow">
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
@@ -263,7 +238,7 @@ export default function LaporanRpl({ laporanRpl }: PageProps) {
                                             className="cursor-pointer px-6 py-3 text-left text-sm font-medium text-gray-500 capitalize select-none"
                                         >
                                             {flexRender(header.column.columnDef.header, header.getContext())}
-                                            {header.column.getIsSorted() ? (header.column.getIsSorted() === 'asc' ? ' \u2191' : ' \u2193') : ''}
+                                            {header.column.getIsSorted() ? (header.column.getIsSorted() === 'asc' ? ' ↑' : ' ↓') : ''}
                                         </th>
                                     ))}
                                 </tr>
@@ -271,7 +246,7 @@ export default function LaporanRpl({ laporanRpl }: PageProps) {
                         </thead>
                         <tbody className="divide-y divide-gray-200 bg-white">
                             {table.getRowModel().rows.map((row) => (
-                                <tr key={row.id}>
+                                <tr key={row.id} className="capitalize">
                                     {row.getVisibleCells().map((cell) => (
                                         <td key={cell.id} className="px-6 py-4 text-sm whitespace-nowrap text-gray-700">
                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}

@@ -35,49 +35,26 @@ export default function LaporanPenitip({ laporanPenitip }: PageProps) {
     const [search, setSearch] = useState('');
     const [pageIndex, setPageIndex] = useState(0);
 
-    const groupedData = useMemo(() => {
-        const map = new Map<string, LaporanPenitipItem>();
-
-        laporanPenitip.forEach((item) => {
-            const date = new Date(item.created_at).toLocaleDateString('id-ID');
-            const key = `${date}-${item.nama_penitip}-${item.nama_produk}`;
-
-            if (!map.has(key)) {
-                map.set(key, { ...item, created_at: item.created_at });
-            } else {
-                const existing = map.get(key)!;
-                map.set(key, {
-                    ...existing,
-                    stok_awal: Math.max(existing.stok_awal, item.stok_awal),
-                    sisa: Math.min(existing.sisa, item.sisa),
-                    jumlah_terjual: existing.jumlah_terjual + item.jumlah_terjual,
-                    total: existing.total + item.total,
-                    laba: existing.laba + item.laba,
-                    uang_kembali: existing.uang_kembali + item.uang_kembali,
-                });
-            }
-        });
-
-        return Array.from(map.values());
-    }, [laporanPenitip]);
-
     const filteredData = useMemo(() => {
-        return groupedData.filter((item) => {
-            const lowerSearch = search.toLowerCase();
+        const filtered = laporanPenitip.filter((item) => {
+            const searchLower = search.toLowerCase();
             const date = new Date(item.created_at);
             const from = fromDate ? new Date(fromDate) : null;
-            const to = toDate ? new Date(toDate + 'T23:59:59') : null; // ini triknya
+            const to = toDate ? new Date(toDate + 'T23:59:59') : null;
 
-            const matchSearch = item.nama_produk.toLowerCase().includes(lowerSearch) || item.nama_penitip.toLowerCase().includes(lowerSearch);
+            const matchSearch = item.nama_produk.toLowerCase().includes(searchLower) || item.nama_penitip.toLowerCase().includes(searchLower);
             const matchFrom = from ? date >= from : true;
             const matchTo = to ? date <= to : true;
 
             return matchSearch && matchFrom && matchTo;
         });
-    }, [groupedData, search, fromDate, toDate]);
+
+        // 🔽 Urutkan dari terbaru ke terlama berdasarkan tanggal
+        return filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    }, [laporanPenitip, search, fromDate, toDate]);
 
     const columns: ColumnDef<LaporanPenitipItem>[] = [
-        { id: 'nomor', header: 'No', cell: ({ row }) => row.index + 1 },
+        { id: 'no', header: 'No', cell: ({ row }) => row.index + 1 },
         { accessorKey: 'nama_penitip', header: 'Nama Penitip' },
         { accessorKey: 'nama_produk', header: 'Nama Produk' },
         { accessorKey: 'harga', header: 'Harga', cell: (info) => formatRupiah(info.getValue<number>()) },
@@ -93,12 +70,7 @@ export default function LaporanPenitip({ laporanPenitip }: PageProps) {
     const table = useReactTable({
         data: filteredData,
         columns,
-        state: {
-            pagination: {
-                pageIndex,
-                pageSize,
-            },
-        },
+        state: { pagination: { pageIndex, pageSize } },
         onPaginationChange: (updater) => {
             const newPagination = typeof updater === 'function' ? updater({ pageIndex, pageSize }) : updater;
             setPageIndex(newPagination.pageIndex);
@@ -110,7 +82,8 @@ export default function LaporanPenitip({ laporanPenitip }: PageProps) {
     });
 
     const exportExcel = () => {
-        const data = filteredData.map((row) => ({
+        const data = filteredData.map((row, index) => ({
+            No: index + 1,
             'Nama Penitip': row.nama_penitip,
             'Nama Produk': row.nama_produk,
             Harga: row.harga,
@@ -124,6 +97,7 @@ export default function LaporanPenitip({ laporanPenitip }: PageProps) {
         }));
 
         data.push({
+            No: 0,
             'Nama Penitip': '',
             'Nama Produk': '',
             Harga: 0,
@@ -139,12 +113,22 @@ export default function LaporanPenitip({ laporanPenitip }: PageProps) {
         const worksheet = XLSX.utils.json_to_sheet(data);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Laporan');
-        XLSX.writeFile(workbook, 'laporan-penitip.xlsx');
+        let filename = 'laporan-penitip';
+        if (fromDate && toDate) {
+            const formatDate = (date: string) => {
+                const [year, month, day] = date.split('-');
+                return `${day}-${month}-${year}`;
+            };
+            filename += `-${formatDate(fromDate)}-sampai-${formatDate(toDate)}`;
+        }
+
+        XLSX.writeFile(workbook, `${filename}.xlsx`);
     };
 
     const exportPDF = () => {
         const doc = new jsPDF();
-        const body = filteredData.map((row) => [
+        const body = filteredData.map((row, index) => [
+            index + 1,
             row.nama_penitip,
             row.nama_produk,
             formatRupiah(row.harga),
@@ -157,8 +141,8 @@ export default function LaporanPenitip({ laporanPenitip }: PageProps) {
             new Date(row.created_at).toLocaleDateString('id-ID'),
         ]);
 
-        // Tambahkan row total
         body.push([
+            '',
             '',
             '',
             '',
@@ -176,7 +160,16 @@ export default function LaporanPenitip({ laporanPenitip }: PageProps) {
             body,
         });
 
-        doc.save('laporan-penitip.pdf');
+        let filename = 'laporan-penitip';
+        if (fromDate && toDate) {
+            const formatDate = (date: string) => {
+                const [year, month, day] = date.split('-');
+                return `${day}-${month}-${year}`;
+            };
+            filename += `-${formatDate(fromDate)}-sampai-${formatDate(toDate)}`;
+        }
+
+        doc.save(`${filename}.pdf`);
     };
 
     return (
@@ -207,13 +200,13 @@ export default function LaporanPenitip({ laporanPenitip }: PageProps) {
                         />
                     </div>
                 </div>
+
                 <div className="flex justify-between">
                     <select
                         value={pageSize}
                         onChange={(e) => {
-                            const newSize = Number(e.target.value);
-                            setPageSize(newSize);
-                            setPageIndex(0); // reset ke halaman 1
+                            setPageSize(Number(e.target.value));
+                            setPageIndex(0);
                         }}
                         className="rounded border p-[1px] text-xs"
                     >
@@ -223,16 +216,16 @@ export default function LaporanPenitip({ laporanPenitip }: PageProps) {
                             </option>
                         ))}
                     </select>
-
-                    <div className="item-center flex gap-2">
-                        <Button className="cursor-pointer bg-green-600 hover:bg-green-700" onClick={exportExcel}>
+                    <div className="flex gap-2">
+                        <Button className="bg-green-600 hover:bg-green-700" onClick={exportExcel}>
                             <RiFileExcel2Line />
                         </Button>
-                        <Button className="cursor-pointer bg-red-500 hover:bg-red-700" onClick={exportPDF}>
+                        <Button className="bg-red-500 hover:bg-red-700" onClick={exportPDF}>
                             <FaRegFilePdf />
                         </Button>
                     </div>
                 </div>
+
                 <div className="overflow-x-auto shadow">
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
@@ -245,7 +238,7 @@ export default function LaporanPenitip({ laporanPenitip }: PageProps) {
                                             className="cursor-pointer px-6 py-3 text-left text-sm font-medium text-gray-500 capitalize select-none"
                                         >
                                             {flexRender(header.column.columnDef.header, header.getContext())}
-                                            {header.column.getIsSorted() ? (header.column.getIsSorted() === 'asc' ? ' \u2191' : ' \u2193') : ''}
+                                            {header.column.getIsSorted() ? (header.column.getIsSorted() === 'asc' ? ' ↑' : ' ↓') : ''}
                                         </th>
                                     ))}
                                 </tr>
@@ -253,7 +246,7 @@ export default function LaporanPenitip({ laporanPenitip }: PageProps) {
                         </thead>
                         <tbody className="divide-y divide-gray-200 bg-white">
                             {table.getRowModel().rows.map((row) => (
-                                <tr key={row.id}>
+                                <tr key={row.id} className="capitalize">
                                     {row.getVisibleCells().map((cell) => (
                                         <td key={cell.id} className="px-6 py-4 text-sm whitespace-nowrap text-gray-700">
                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}

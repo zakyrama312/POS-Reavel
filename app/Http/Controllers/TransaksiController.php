@@ -90,53 +90,90 @@ class TransaksiController extends Controller
     public function laporanPenitip()
     {
 
-        $laporanPenitip = Transaksi_item::with('produk', 'penitip')
-            ->whereNot('id_penitip', 2)
-            ->get()
-            ->map(function ($item) {
+        $laporanPenitip = Produk::with([
+            'penitip',
+            'produk_stoks' => fn($q) => $q->orderBy('created_at'),
+            'transaksi_items'
+        ])->whereNot('id_penitip', 2)->get()->flatMap(function ($produk) {
+            return $produk->produk_stoks->map(function ($stok) use ($produk) {
+                $transaksiItems = $produk->transaksi_items->filter(function ($item) use ($stok) {
+                    // Bandingkan berdasarkan tanggal saja (tanpa jam)
+                    return $item->created_at->format('Y-m-d') === $stok->created_at->format('Y-m-d');
+                });
+
+                $jumlahTerjual = $transaksiItems->sum('jumlah_beli');
+                $total = $transaksiItems->sum('total_harga');
+                $laba = $transaksiItems->sum('laba');
+                $uangKembali = $transaksiItems->sum('total_uang_penitip');
+                $sisa = $stok->stok_masuk - $jumlahTerjual;
+
                 return [
-                    'id' => $item->id,
-                    'nama_produk' => $item->produk->nama_produk ?? '',
-                    'harga' => $item->harga,
-                    'stok_awal' => $item->produk->stok_masukSementara ?? 0,
-                    'sisa' => $item->produk->stok_masukSementara - $item->jumlah_beli ?? 0,
-                    'jumlah_terjual' => $item->jumlah_beli ?? 0,
-                    'total' => $item->total_harga ?? 0,
-                    'laba' => $item->laba ?? 0,
-                    'uang_kembali' => $item->total_uang_penitip ?? 0,
-                    'nama_penitip' => $item->penitip->nama_penitip ?? '',
-                    'created_at' => $item->created_at,
+                    'id' => $produk->id,
+                    'nama_produk' => $produk->nama_produk,
+                    'nama_penitip' => $produk->penitip->nama_penitip ?? '-',
+                    'harga' => $produk->harga,
+                    'stok_awal' => $stok->stok_masuk ?? 0,
+                    'sisa' => $sisa ?? 0,
+                    'jumlah_terjual' => $jumlahTerjual,
+                    'total' => $total,
+                    'laba' => $laba,
+                    'uang_kembali' => $uangKembali,
+                    'created_at' => $stok->created_at,
                 ];
-            });
+            })->sortByDesc('created_at')->values();
+            ;
+        });
+
+
+
 
         return Inertia::render('laporan/laporan-penjualan-penitip', [
             'laporanPenitip' => $laporanPenitip,
         ]);
+
+
     }
     public function laporanRpl()
     {
 
-        $laporanRpl = Transaksi_item::with('produk', 'penitip')
-            ->where('id_penitip', 2)
-            ->get()
-            ->map(function ($item) {
+        $laporanPenitip = Produk::with([
+            'penitip',
+            'produk_stoks' => fn($q) => $q->orderBy('created_at'),
+            'transaksi_items'
+        ])->where('id_penitip', 2)->get()->flatMap(function ($produk) {
+            return $produk->produk_stoks->map(function ($stok) use ($produk) {
+                $transaksiItems = $produk->transaksi_items->filter(function ($item) use ($stok) {
+                    // Bandingkan berdasarkan tanggal saja (tanpa jam)
+                    return $item->created_at->format('Y-m-d') === $stok->created_at->format('Y-m-d');
+                });
+
+                $jumlahTerjual = $transaksiItems->sum('jumlah_beli');
+                $total = $transaksiItems->sum('total_harga');
+                $laba = $transaksiItems->sum('laba');
+                $uangKembali = $transaksiItems->sum('total_uang_penitip');
+                $sisa = $stok->stok_masuk - $jumlahTerjual;
+
                 return [
-                    'id' => $item->id,
-                    'nama_produk' => $item->produk->nama_produk ?? '',
-                    'harga' => $item->harga,
-                    'stok_awal' => $item->produk->stok_masukSementara ?? 0,
-                    'sisa' => $item->produk->stok_masukSementara - $item->jumlah_beli ?? 0,
-                    'jumlah_terjual' => $item->jumlah_beli ?? 0,
-                    'total' => $item->total_harga ?? 0,
-                    'laba' => $item->laba ?? 0,
-                    'uang_kembali' => $item->total_uang_penitip ?? 0,
-                    'nama_penitip' => $item->penitip->nama_penitip ?? '',
-                    'created_at' => $item->created_at,
+                    'id' => $produk->id,
+                    'nama_produk' => $produk->nama_produk,
+                    'nama_penitip' => $produk->penitip->nama_penitip ?? '-',
+                    'harga' => $produk->harga,
+                    'stok_awal' => $stok->stok_masuk ?? 0,
+                    'sisa' => $sisa ?? 0,
+                    'jumlah_terjual' => $jumlahTerjual,
+                    'total' => $total,
+                    'laba' => $laba,
+                    'uang_kembali' => $uangKembali,
+                    'created_at' => $stok->created_at,
                 ];
-            });
+            })->sortByDesc('created_at')->values();
+            ;
+        });
+
+
 
         return Inertia::render('laporan/laporan-penjualan-rpl', [
-            'laporanRpl' => $laporanRpl,
+            'laporanPenitip' => $laporanPenitip,
         ]);
     }
 
