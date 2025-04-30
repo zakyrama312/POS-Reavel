@@ -90,7 +90,7 @@ export default function Dashboard({ totalPenjualan, jumlahTransaksi, jumlahProdu
                                 <LineChart data={grafikPenjualan}>
                                     <CartesianGrid strokeDasharray="3 3" />
                                     <XAxis dataKey="tanggal" tick={{ fontSize: 12 }} />
-                                    <YAxis tickFormatter={(value) => `Rp ${value.toLocaleString('id-ID')}`} />
+                                    <YAxis tickFormatter={(value) => `Rp ${value.toLocaleString('id-ID')}`} tick={{ fontSize: 12 }} />
                                     <Tooltip formatter={(value: number) => `Rp ${value.toLocaleString('id-ID')}`} />
                                     <Line type="monotone" dataKey="total" stroke="#16a34a" strokeWidth={2} />
                                 </LineChart>

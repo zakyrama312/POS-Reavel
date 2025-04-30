@@ -225,7 +225,7 @@ export default function POSPage({ produk: initialProduk }: Props) {
                         {cart.map((item) => (
                             <div key={item.id} className="flex items-center justify-between border-b pb-1">
                                 <div>
-                                    <div>{item.name}</div>
+                                    <div className="capitalize">{item.name}</div>
                                     <div className="text-sm text-gray-500">
                                         Rp. {item.price.toLocaleString()} x {item.quantity}
                                     </div>

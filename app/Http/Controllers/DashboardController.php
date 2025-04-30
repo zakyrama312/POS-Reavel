@@ -50,10 +50,10 @@ class DashboardController extends Controller
 
         $grafikPenjualan = DB::table('transaksi')
             ->selectRaw('DATE(created_at) as tanggal, SUM(total_bayar) as total')
-            // ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
-            ->groupBy(DB::raw('created_at'))
-            ->orderBy('created_at')
+            ->groupBy(DB::raw('DATE(created_at)'))
+            ->orderBy(DB::raw('DATE(created_at)'))
             ->get();
+
         return Inertia::render('dashboard', [
             'totalPenjualan' => $totalPenjualan,
             'jumlahTransaksi' => $jumlahTransaksi,
