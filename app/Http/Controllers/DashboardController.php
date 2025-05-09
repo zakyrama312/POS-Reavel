@@ -31,6 +31,7 @@ class DashboardController extends Controller
         $produkTerlaris = Transaksi_item::select('id_produk', DB::raw('SUM(jumlah_beli) as total_terjual'))
             ->whereMonth('created_at', now()->month)
             ->whereYear('created_at', now()->year)
+            ->whereNot('id_penitip', 2)
             ->groupBy('id_produk')
             ->orderByDesc('total_terjual')
             ->get()

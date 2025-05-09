@@ -94,15 +94,15 @@ class ProdukController extends Controller
             'id_kategori' => $request->id_kategori,
             'nama_produk' => $request->nama_produk,
             'harga' => $request->harga,
-            'stok_masukSementara' => $newMasuk,
-            'stok_akhirSementara' => $newAkhir,
+            // 'stok_masukSementara' => $newMasuk,
+            // 'stok_akhirSementara' => $newAkhir,
         ]);
 
         // 4. Update record produk_stoks terakhir
-        $lastStok->update([
-            'stok_masuk' => $newMasuk,
-            'stok_akhir' => $newAkhir,
-        ]);
+        // $lastStok->update([
+        //     'stok_masuk' => $newMasuk,
+        //     'stok_akhir' => $newAkhir,
+        // ]);
 
         return redirect()->route('produk.index')
             ->with('success', "Stok produk {$produk->nama_produk} berhasil diperbarui");
@@ -164,16 +164,27 @@ class ProdukController extends Controller
     public function updateStok(Request $request, $id)
     {
         $request->validate([
-            'stok_masukSementara' => 'required|integer|min:0',
+            'stok_masukSementara' => 'required|integer',
         ]);
 
         $produk = Produk::findOrFail($id);
         $idPenitip = $produk->id_penitip;
 
         // Tambahkan stok ke produk
-        $produk->stok_masukSementara += $request->stok_masukSementara;
-        $produk->stok_akhirSementara += $request->stok_masukSementara;
+
+
+        $stokBaru = $produk->stok_masukSementara + $request->stok_masukSementara;
+        $stokAkhirBaru = $produk->stok_akhirSementara + $request->stok_masukSementara;
+
+        if ($stokBaru < 0 || $stokAkhirBaru < 0) {
+            return back()->with('error', 'Stok tidak boleh negatif.');
+        }
+
+        // Simpan perubahan
+        $produk->stok_masukSementara = $stokBaru;
+        $produk->stok_akhirSementara = $stokAkhirBaru;
         $produk->save();
+
 
         // Tanggal hari ini
         $today = Carbon::now()->toDateString();
