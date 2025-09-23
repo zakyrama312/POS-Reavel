@@ -80,17 +80,21 @@ export default function Dashboard({ totalPenjualan, jumlahTransaksi, jumlahProdu
                     </div>
                 </div> */}
                 {/* Grafik Penjualan */}
-                <div className="mt-4 min-h-[500px] rounded-xl border bg-white p-4 shadow-sm">
+                <div className="mt-4 min-h-[300px] rounded-xl border bg-white p-4 shadow-sm">
                     <h2 className="mb-4 text-lg font-semibold">Grafik Penjualan Bulanan</h2>
-                    <div className="relative min-h-[200px]">
+                    <div className="relative min-h-[300px]">
                         {grafikPenjualan.length === 0 ? (
                             <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
                         ) : (
-                            <ResponsiveContainer width="100%" height={450}>
+                            <ResponsiveContainer width="100%" height={700}>
                                 <LineChart data={grafikPenjualan}>
                                     <CartesianGrid strokeDasharray="3 3" />
                                     <XAxis dataKey="tanggal" tick={{ fontSize: 12 }} />
-                                    <YAxis tickFormatter={(value) => `Rp ${value.toLocaleString('id-ID')}`} tick={{ fontSize: 12 }} />
+                                    <YAxis
+                                        tickFormatter={(value) => `Rp ${value.toLocaleString('id-ID')}`}
+                                        tick={{ fontSize: 12 }}
+                                        domain={[0, 'dataMax + 1000000']}
+                                    />
                                     <Tooltip formatter={(value: number) => `Rp ${value.toLocaleString('id-ID')}`} />
                                     <Line type="monotone" dataKey="total" stroke="#16a34a" strokeWidth={2} />
                                 </LineChart>

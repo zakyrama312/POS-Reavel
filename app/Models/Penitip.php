@@ -14,6 +14,6 @@ class Penitip extends Model
     // For example:
     public function produk()
     {
-        return $this->hasMany(Produk::class);
+        return $this->hasMany(Produk::class, 'id_penitip');
     }
 }

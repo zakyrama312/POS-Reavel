@@ -53,11 +53,13 @@ class PenitipController extends Controller
      */
     public function destroy($id)
     {
-        $penitip = Penitip::find($id);
-        // Check if penitip has related data in other tables
-        if ($penitip->relatedData()->exists()) {
-            return redirect()->back()->with('error', 'Data penitip tidak dapat dihapus karena memiliki data terkait');
+        $penitip = Penitip::findOrFail($id);
+
+        // Cek apakah penitip punya produk terkait
+        if ($penitip->produk()->exists()) {
+            return redirect()->back()->with('error', 'Data penitip tidak dapat dihapus karena memiliki data produk terkait');
         }
+
         $penitip->delete();
         return redirect()->back()->with('success', 'Data penitip berhasil dihapus');
     }

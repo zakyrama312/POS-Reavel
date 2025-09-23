@@ -21,6 +21,7 @@ interface Produk {
 interface CartItem {
     id: number;
     name: string;
+    penitip: string;
     price: number;
     quantity: number;
 }
@@ -30,15 +31,44 @@ interface Props {
 }
 
 export default function POSPage({ produk: initialProduk }: Props) {
-    const [produk, setProduk] = useState<Produk[]>(initialProduk);
+    const [produk, setProduk] = useState<Produk[]>([]);
     const [cart, setCart] = useState<CartItem[]>(() => {
         const storedCart = localStorage.getItem('cart');
         return storedCart ? JSON.parse(storedCart) : [];
     });
 
+    // ⬇️ Pulihkan stok produk dari localStorage saat mount
+    useEffect(() => {
+        const storedStock = localStorage.getItem('produkStok');
+        if (storedStock) {
+            const stokObj = JSON.parse(storedStock) as Record<number, number>;
+            setProduk(
+                initialProduk.map((p) => ({
+                    ...p,
+                    stok_akhirSementara: stokObj[p.id] ?? p.stok_akhirSementara,
+                })),
+            );
+        } else {
+            setProduk(initialProduk);
+        }
+    }, [initialProduk]);
+
+    // ⬇️ Simpan keranjang ke localStorage
     useEffect(() => {
         localStorage.setItem('cart', JSON.stringify(cart));
     }, [cart]);
+
+    // ⬇️ Simpan stok produk ke localStorage setiap kali produk berubah
+    useEffect(() => {
+        if (produk.length > 0) {
+            const stokObj: Record<number, number> = {};
+            produk.forEach((p) => {
+                stokObj[p.id] = p.stok_akhirSementara;
+            });
+            localStorage.setItem('produkStok', JSON.stringify(stokObj));
+        }
+    }, [produk]);
+
     const [search, setSearch] = useState('');
     const [selectedProduct, setSelectedProduct] = useState<Produk | null>(null);
     const [quantity, setQuantity] = useState(1);
@@ -76,6 +106,8 @@ export default function POSPage({ produk: initialProduk }: Props) {
                 setCart([]);
                 setBayar(0);
                 localStorage.removeItem('cart');
+                localStorage.removeItem('produkStok'); // reset stok setelah transaksi
+                setProduk(initialProduk); // reset stok UI dari database
             },
         });
     };
@@ -89,17 +121,15 @@ export default function POSPage({ produk: initialProduk }: Props) {
     );
     const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
     const sortedProducts = filteredProducts.sort((a, b) => b.stok_akhirSementara - a.stok_akhirSementara);
-
-    // const paginatedProducts = filteredProducts.slice((currentPage - 1) * productsPerPage, currentPage * productsPerPage);
     const paginatedProducts = sortedProducts.slice((currentPage - 1) * productsPerPage, currentPage * productsPerPage);
+
     const addToCart = () => {
         if (!selectedProduct) return;
-        // Cek stok lokal
         if (quantity > selectedProduct.stok_akhirSementara) {
             setError('Stok tidak cukup');
             return;
         }
-        // Tambah ke cart
+
         setCart((prev) => {
             const existing = prev.find((item) => item.id === selectedProduct.id);
             if (existing) {
@@ -110,14 +140,15 @@ export default function POSPage({ produk: initialProduk }: Props) {
                 {
                     id: selectedProduct.id,
                     name: selectedProduct.nama_produk,
+                    penitip: selectedProduct.penitip.nama_penitip,
                     price: selectedProduct.harga,
                     quantity,
                 },
             ];
         });
-        // Kurangi stok di UI
+
         setProduk((prev) => prev.map((p) => (p.id === selectedProduct.id ? { ...p, stok_akhirSementara: p.stok_akhirSementara - quantity } : p)));
-        // Reset modal
+
         setSelectedProduct(null);
         setQuantity(1);
         setError('');
@@ -126,18 +157,14 @@ export default function POSPage({ produk: initialProduk }: Props) {
     const removeFromCart = (id: number) => {
         setCart((prevCart) => {
             const itemToRemove = prevCart.find((item) => item.id === id);
-            // kembalikan stok ke produk UI jika item ditemukan
             if (itemToRemove) {
                 setProduk((prevProduk) =>
                     prevProduk.map((p) => (p.id === id ? { ...p, stok_akhirSementara: p.stok_akhirSementara + itemToRemove.quantity } : p)),
                 );
             }
-            // hapus dari keranjang
             return prevCart.filter((item) => item.id !== id);
         });
     };
-
-    // const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
     return (
         <>
@@ -188,7 +215,6 @@ export default function POSPage({ produk: initialProduk }: Props) {
                                     <span className="font-sans text-xs text-gray-500">{product.penitip.nama_penitip}</span>
                                     <div className="mt-4 flex">
                                         <span className="font-semibold text-red-500">Rp. {product.harga.toLocaleString()}</span>
-
                                         <span className={`ml-auto text-xs ${product.stok_akhirSementara === 0 ? 'text-red-500' : 'text-gray-500'}`}>
                                             {product.stok_akhirSementara === 0 ? 'Habis' : `${product.stok_akhirSementara} pcs`}
                                         </span>
@@ -225,7 +251,9 @@ export default function POSPage({ produk: initialProduk }: Props) {
                         {cart.map((item) => (
                             <div key={item.id} className="flex items-center justify-between border-b pb-1">
                                 <div>
-                                    <div className="capitalize">{item.name}</div>
+                                    <div className="capitalize">
+                                        {item.name} - {item.penitip}
+                                    </div>
                                     <div className="text-sm text-gray-500">
                                         Rp. {item.price.toLocaleString()} x {item.quantity}
                                     </div>
@@ -246,12 +274,6 @@ export default function POSPage({ produk: initialProduk }: Props) {
                         </div>
                         <div className="flex items-center justify-between">
                             <span>Bayar</span>
-                            {/* <input
-                                type="number"
-                                value={bayar}
-                                onChange={(e) => setBayar(Number(e.target.value))}
-                                className="w-24 rounded border p-1"
-                            /> */}
                             <NumericFormat
                                 value={bayar}
                                 thousandSeparator="."
@@ -276,7 +298,15 @@ export default function POSPage({ produk: initialProduk }: Props) {
                     <Dialog open={true} onOpenChange={() => setSelectedProduct(null)}>
                         <DialogContent>
                             <DialogHeader>
-                                <DialogTitle>{selectedProduct.nama_produk}</DialogTitle>
+                                <DialogTitle className="mt-3 flex justify-between">
+                                    <div className="flex flex-col">
+                                        <span className="font-medium capitalize">{selectedProduct.nama_produk}</span>
+                                        <span className="mt-1 text-sm font-light text-gray-600">{selectedProduct.penitip.nama_penitip}</span>
+                                    </div>
+                                    <span className="text-sm text-gray-500">
+                                        {selectedProduct.stok_akhirSementara == 0 ? 'Habis' : `${selectedProduct.stok_akhirSementara} pcs`}
+                                    </span>
+                                </DialogTitle>
                             </DialogHeader>
                             <div className="space-y-2">
                                 <form
