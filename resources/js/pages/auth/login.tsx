@@ -37,7 +37,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
         <>
             <Head title="Log in" />
             <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4 py-12">
-                <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-md">
+                <div className="w-full max-w-md rounded-lg bg-white p-8 text-black shadow-md">
                     <h2 className="text-center text-2xl font-semibold">Selamat Datang</h2>
                     <h2 className="mb-5 text-center text-sm font-thin">Silahkan Masukkan Email dan Password</h2>
 

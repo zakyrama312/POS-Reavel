@@ -10,6 +10,9 @@ use App\Models\Produk_stok;
 use Illuminate\Http\Request;
 use App\Models\Transaksi_item;
 use Illuminate\Support\Facades\DB;
+use Midtrans\Snap;
+use Midtrans\Config;
+
 
 class TransaksiController extends Controller
 {
@@ -24,6 +27,61 @@ class TransaksiController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+
+    public function createSnapToken(Request $request)
+    {
+        try {
+            // Set konfigurasi Midtrans
+            Config::$serverKey = config('midtrans.serverKey');
+            Config::$isProduction = config('midtrans.isProduction');
+            Config::$isSanitized = config('midtrans.isSanitized');
+            Config::$is3ds = config('midtrans.is3ds');
+
+            // Validasi request
+            $request->validate([
+                'total' => 'required|numeric',
+                'cart' => 'required|array',
+                'cart.*.id' => 'required',
+                'cart.*.name' => 'required',
+                'cart.*.price' => 'required|numeric',
+                'cart.*.quantity' => 'required|numeric',
+            ]);
+
+            // Parameter untuk Midtrans
+            $params = [
+                'transaction_details' => [
+                    'order_id' => 'ORDER-' . uniqid(),
+                    'gross_amount' => (int) $request->total,
+                ],
+                'customer_details' => [
+                    'first_name' => 'Customer',
+                    'email' => 'customer@example.com',
+                ],
+                'item_details' => collect($request->cart)->map(function ($item) {
+                    return [
+                        'id' => $item['id'],
+                        'price' => (int) $item['price'],
+                        'quantity' => (int) $item['quantity'],
+                        'name' => $item['name'] ?? 'Barang',
+                    ];
+                })->toArray(),
+            ];
+
+            // Get snap token
+            $snapToken = Snap::getSnapToken($params);
+
+            return response()->json([
+                'snapToken' => $snapToken
+            ]);
+        } catch (\Exception $e) {
+            // Log error untuk debugging
+            \Log::error('Midtrans Token Error: ' . $e->getMessage());
+
+            return response()->json([
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
     public function store(Request $request)
     {
 
@@ -120,8 +178,7 @@ class TransaksiController extends Controller
                     'uang_kembali' => $uangKembali,
                     'created_at' => $stok->created_at,
                 ];
-            })->sortByDesc('created_at')->values();
-            ;
+            })->sortByDesc('created_at')->values();;
         });
 
 
@@ -130,8 +187,6 @@ class TransaksiController extends Controller
         return Inertia::render('laporan/laporan-penjualan-penitip', [
             'laporanPenitip' => $laporanPenitip,
         ]);
-
-
     }
     public function laporanRpl()
     {
@@ -166,8 +221,7 @@ class TransaksiController extends Controller
                     'uang_kembali' => $uangKembali,
                     'created_at' => $stok->created_at,
                 ];
-            })->sortByDesc('created_at')->values();
-            ;
+            })->sortByDesc('created_at')->values();;
         });
 
 

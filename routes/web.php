@@ -1,5 +1,6 @@
 <?php
 
+use Midtrans\Snap;
 use Inertia\Inertia;
 use App\Models\Produk_stok;
 use Illuminate\Support\Facades\Route;
@@ -60,6 +61,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // POS
     Route::get('/point-of-sales', [ProdukController::class, 'produkList'])->name('produk.produkList');
 
+
     // Produk Stok
     Route::post('/produk/reset', [ProdukController::class, 'resetStok']);
     Route::put('/produk/update-stok/{id}', [ProdukController::class, 'updateStok'])->name('produk.updateStok');
@@ -68,6 +70,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/transaksi', [TransaksiController::class, 'store'])->name('transaksi.store');
     Route::get('/transaksi-harian', [TransaksiController::class, 'transaksiHarian'])->name('transaksi.transaksiHarian');
     Route::get('/transaksi-harian-rpl', [TransaksiController::class, 'transaksiHarianRPL'])->name('transaksi.transaksiHarianRPL');
+    Route::post('/midtrans/token', [TransaksiController::class, 'createSnapToken']);
+
+
+
 
     //Laporan
     Route::get('/laporan-penjualan-penitip', [TransaksiController::class, 'laporanPenitip'])->name('transaksi.laporanPenitip');
